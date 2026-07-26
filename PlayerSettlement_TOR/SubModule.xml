@@ -1,0 +1,50 @@
+<Module>
+  <Name value="Player Settlement: The Old Realms (1.16 hybrid scenes)" />
+  <Id value="PlayerSettlement_TOR" />
+  <Version value="v1.5.4" />
+  <Url value="https://www.nexusmods.com/mountandblade2bannerlord/mods/7298" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+  <Official value="false" />
+  <DefaultModule value="false" />
+  <ModuleCategory value="Singleplayer" />
+  <ModuleType value="Community" />
+  <PlayerSettlementsTemplates path="ModuleData/Player_Settlement_Templates" />
+  <DependedModules>
+    <DependedModule Id="Bannerlord.Harmony" DependentVersion="v2.4.2" />
+    <DependedModule Id="Bannerlord.ButterLib" DependentVersion="v2.10.2" />
+    <DependedModule Id="Bannerlord.UIExtenderEx" DependentVersion="v2.13.2" />
+    <DependedModule Id="Bannerlord.MBOptionScreen" DependentVersion="v5.11.3" />
+    <DependedModule Id="Native" DependentVersion="v1.3.15" />
+    <DependedModule Id="SandBoxCore" DependentVersion="v1.3.15" />
+    <DependedModule Id="Sandbox" DependentVersion="v1.3.15" />
+    <DependedModule Id="StoryMode" DependentVersion="v1.3.15" />
+    <DependedModule Id="TOR_Armory" />
+    <DependedModule Id="TOR_Environment" />
+    <DependedModule Id="TOR_Core" />
+    <DependedModule Id="PlayerSettlement" DependentVersion="v7.6.11" />
+  </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v2.4.2" />
+    <DependedModuleMetadata id="Bannerlord.ButterLib" order="LoadBeforeThis" version="v2.10.2" />
+    <DependedModuleMetadata id="Bannerlord.UIExtenderEx" order="LoadBeforeThis" version="v2.13.2" />
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" version="v5.11.3" />
+    <DependedModuleMetadata id="Native" order="LoadBeforeThis" version="1.0.0.*" />
+    <DependedModuleMetadata id="SandBoxCore" order="LoadBeforeThis" version="1.0.0.*" />
+    <DependedModuleMetadata id="Sandbox" order="LoadBeforeThis" version="1.0.0.*" />
+    <DependedModuleMetadata id="StoryMode" order="LoadBeforeThis" version="1.0.0.*" />
+    <DependedModuleMetadata id="TOR_Armory" order="LoadBeforeThis" version="v1.16.0" />
+    <DependedModuleMetadata id="TOR_Environment" order="LoadBeforeThis" version="v1.16.0" />
+    <DependedModuleMetadata id="TOR_Core" order="LoadBeforeThis" version="v1.16.0" />
+    <DependedModuleMetadata id="PlayerSettlement" order="LoadBeforeThis" version="v7.6.11" />
+  </DependedModuleMetadatas>
+  <SubModules>
+    <SubModule>
+      <Name value="Player Settlement TOR Runtime Templates" />
+      <DLLName value="PlayerSettlementTORRuntime.dll" />
+      <SubModuleClassType value="PlayerSettlementTORRuntime.SubModule" />
+      <Tags />
+    </SubModule>
+  </SubModules>
+  <Xmls />
+</Module>

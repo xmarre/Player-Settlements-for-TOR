@@ -1,0 +1,10 @@
+CI PROVENANCE
+Repository: xmarre/MapPerfFix
+Temporary branch: temp/player-settlement-visual-physics-fix-7611
+Head commit: 3ebc3f042692cc8c760fee52cd4a947b936d30ec
+Build workflow run: 30222640347
+Build result: success
+Repository safety invariant run: 30222640346
+Safety invariant result: success
+Artifact id: 8637657104
+Artifact digest: sha256:b6adc2d397eca0328df652d2d965d2481fcfb98dcb05d2a9cb1ec049b2964722

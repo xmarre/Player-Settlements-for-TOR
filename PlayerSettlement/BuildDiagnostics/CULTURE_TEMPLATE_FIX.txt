@@ -1,0 +1,6 @@
+7.6.3 culture-template hotfix
+
+Symptom: selected towns/castles used the Wood Elf visual.
+Trigger: selected CultureObject.StringId or requested settlement type had no exact template.
+Root cause: the fallback list began with battania and UpdateSettlementVisualEntity clamped the invalid start index to zero.
+Invariant restored: every TOR 1.16 main culture has at least one Town and one Castle template, so selection resolves within the chosen culture instead of entering the global fallback.

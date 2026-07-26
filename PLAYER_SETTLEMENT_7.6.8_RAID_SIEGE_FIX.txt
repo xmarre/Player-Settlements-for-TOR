@@ -1,0 +1,16 @@
+PLAYER SETTLEMENTS 7.6.8 - VILLAGE RAID AND SIEGE INTEGRATION FIX
+
+- Fixes the native campaign-map crash triggered when a generated village enters the BeingRaided state.
+- Generated TOR settlement visuals are now instantiated from the source prefab instead of cloning a live campaign-map entity and its mutable native mesh state.
+- Preserves the same-culture map icon and model selection introduced in 7.6.5/7.6.6.
+- Registers newly built custom towns and castles through Bannerlord's official owner-change lifecycle so clan and kingdom settlement caches receive them immediately.
+- Repairs existing player-owned custom fortifications once at campaign session launch by performing the same official ownership transition.
+- Preserves conquered custom settlements: the repair does not reassign fortifications currently owned by another clan.
+- Keeps the village owner/bound/trade-bound invariant recovery from 7.6.7.
+- Adds no campaign-map tick scan.
+
+Validation status:
+- The supplied crash report reaches a native AccessViolationException in MBMapScene.TickVisuals while processing campaign-map mesh pointers.
+- Static metadata and IL validation confirms the prefab-instantiation call, both new-build ownership transitions, the one-shot existing-save repair, valid branch targets, and the adjusted exception-handler offsets.
+- XML, duplicate-bin, PE/CLI metadata, archive-integrity, and SHA-256 checks completed.
+- In-game execution is not available in this environment. Village raid start and hostile AI siege formation remain the required runtime acceptance tests.

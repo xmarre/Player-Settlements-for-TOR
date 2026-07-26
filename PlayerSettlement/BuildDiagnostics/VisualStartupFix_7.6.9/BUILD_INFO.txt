@@ -1,0 +1,6 @@
+Version=7.6.9.0
+UpstreamCommit=52d86c7480778afb83e476ac742895f73fbf6d7f
+ValidatedNativePatchSHA256=0a29aad0def0e5a71f211ebeb0c7258abc9c80e4679286ba9356a171cd6234f1
+PlayerSettlementDLL_SHA256=0ef48e8b0d7936f8e014a3e6f4109ae5bbed7542355ddd3b205fe479c51b5a40
+PlayerSettlementPDB_SHA256=ba65cdcbb842ee5d56182c6f0aea6d52d2dc47b8cd7ee6e488061cbbd4aa80b9
+Fix=SettlementVisual.OnStartup null-safety; created ToR visual fallback; exact-culture preview; ownership lifecycle; integrated culture helper

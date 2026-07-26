@@ -1,0 +1,36 @@
+PLAYER SETTLEMENT 7.6.11 STATIC VALIDATION
+
+- PASS: PlayerSettlement SubModule.xml parses
+- PASS: PlayerSettlement_TOR SubModule.xml parses
+- PASS: main module version is 7.6.11
+- PASS: TOR dependency targets 7.6.11
+- PASS: Win64_Shipping_Client DLL matches CI hash
+- PASS: Win64_Shipping_Client PDB matches CI hash
+- PASS: Gaming.Desktop.x64_Shipping_Client DLL matches CI hash
+- PASS: Gaming.Desktop.x64_Shipping_Client PDB matches CI hash
+- PASS: runtime DLL copies are byte-identical
+- PASS: runtime PDB copies are byte-identical
+- PASS: private level-visibility prefix is present
+- PASS: level-visibility bypass is ToR-scoped
+- PASS: level-visibility bypass is player-built scoped
+- PASS: native banner placeholder removal lifecycle is restored
+- PASS: unsafe live-entity CopyFromPrefab call is absent
+- PASS: independent prefab instantiation path is present
+- PASS: scene-instance clone fallback is present
+- PASS: prefab identity resolution is present
+- PASS: ToR settlement identification helper is present
+- PASS: runtime DLL has PE signature
+- PASS: runtime DLL is a CLI assembly
+- PASS: no external culture-visual assembly reference
+- PASS: compiled DLL contains level-visibility patch target
+- PASS: compiled DLL contains ToR scoping helper
+- PASS: compiled DLL does not reference CopyFromPrefab
+- PASS: compiled DLL contains scene-instance clone path
+- PASS: compiled DLL contains prefab instantiation path
+- PASS: CI build reports assembly version 7.6.11.0
+- PASS: CI build info reports expected DLL hash
+- PASS: CI build info reports expected PDB hash
+- PASS: included level patch matches CI source hash
+- PASS: included helper matches CI source hash
+
+Runtime execution in Bannerlord was not available in the build environment.

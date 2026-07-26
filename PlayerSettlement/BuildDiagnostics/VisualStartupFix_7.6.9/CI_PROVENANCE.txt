@@ -1,0 +1,13 @@
+CI provenance
+=============
+
+Repository: xmarre/MapPerfFix
+Temporary branch: temp/player-settlement-visual-startup-fix-769
+Temporary PR: 117
+Successful build workflow run: 30220187267
+Successful artifact id: 8636982524
+Artifact digest:
+sha256:77db2bc98b23a458171912fb4b192bf2608a1a02053da04e78d3ea75b707300c
+Repository safety invariant: passed
+Build job: passed
+PR was used only for isolated compilation and was not merged.

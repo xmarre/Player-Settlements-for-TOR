@@ -1,0 +1,13 @@
+PLAYER SETTLEMENTS 7.6.7 - VILLAGE RAID HOTFIX
+
+- Repairs incomplete runtime state on dynamically created player villages when a campaign session loads.
+- Restores a missing SettlementComponent owner link to the village party.
+- Restores a missing player-clan owner only on generated player towns or castles that bind a generated village.
+- Restores a missing trade-bound town for castle-bound generated villages through Bannerlord's native VillageTradeModel.
+- Runs once during campaign session launch. No campaign-map tick scan was added.
+- The original PlayerSettlement.dll 7.6.6 and PlayerSettlementTORRuntime.dll remain byte-for-byte unchanged.
+
+Validation status:
+- Compiled against Bannerlord 1.3.15.110062 reference assemblies.
+- Static IL, XML, archive-integrity, duplicate-bin and unchanged-core hash checks completed.
+- In-game reproduction was unavailable in this environment. The report supplied no managed crash stack, so this is a state-invariant hotfix based on the exact raid initialization path and generated-village lifecycle.

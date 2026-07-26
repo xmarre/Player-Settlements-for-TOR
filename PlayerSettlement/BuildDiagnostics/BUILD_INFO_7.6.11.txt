@@ -1,0 +1,6 @@
+Version=7.6.11.0
+UpstreamCommit=52d86c7480778afb83e476ac742895f73fbf6d7f
+ValidatedNativePatchSHA256=0a29aad0def0e5a71f211ebeb0c7258abc9c80e4679286ba9356a171cd6234f1
+PlayerSettlementDLL_SHA256=7a20c50a2ce421abe98852ff3e9a51c63926fca7f551b14ce0b10b22d6f56fe1
+PlayerSettlementPDB_SHA256=f6b56e7e84a910d545dbdc5712f6260a3967952e96e0a0b5bfb05f606aef2737
+Fix=independent ToR prefab instantiation; custom level-visibility physics bypass; visual startup null-safety; raid and siege ownership lifecycle

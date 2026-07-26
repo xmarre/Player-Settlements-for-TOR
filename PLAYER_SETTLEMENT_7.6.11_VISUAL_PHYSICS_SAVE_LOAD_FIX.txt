@@ -1,0 +1,15 @@
+PLAYER SETTLEMENT 7.6.11
+TOR SETTLEMENT VISUAL PHYSICS / SAVE-LOAD ACCESS VIOLATION FIX
+
+- Fixed the remaining protected-memory crash in SettlementVisual.SetSettlementLevelVisibility while loading saves with ToR player-built settlements.
+- Replaced the unsafe CopyFromPrefab(live campaign entity) visual path with independent prefab instantiation and a proper scene-instance clone fallback.
+- Bypassed Bannerlord's recursive settlement-level physics pass only for ToR player-built settlement visuals.
+- Restored Bannerlord's original banner-placeholder removal lifecycle; the 7.6.10 diagnosis of that path was incorrect.
+- Preserved exact-culture ToR settlement visuals.
+- Preserved the custom visual startup null-safety, village-raid fix, and siege-AI ownership registration.
+- Added no recurring campaign-map scans.
+
+Install cleanly
+---------------
+Delete Modules/PlayerSettlement and Modules/PlayerSettlement_TOR before extracting this archive.
+Fully restart Bannerlord before loading the affected save.

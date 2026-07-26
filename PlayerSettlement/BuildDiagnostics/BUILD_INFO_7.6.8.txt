@@ -1,0 +1,14 @@
+ModuleVersion=7.6.8
+Target=Mount & Blade II Bannerlord 1.3.15.110062; The Old Realms WiTM 1.16
+InputSourceArchive_SHA256=92496cc0a347b8ddfcd1738c3fa08cc9b15e2386818a13e7f0e759471482f5fb
+InputCrashReport_SHA256=4b6e8505a6cb8d16c4f34bd839bb678f0de6ddc25fcef1ecf450f6c450b8565c
+InputHashVerification=Completed before patching
+PatchMethod=Targeted ECMA-335 IL and metadata patch against the supplied 7.6.7 full-source build
+PlayerSettlement_DLL_SHA256=0498e9ccd797053f766cbe4008c7d218d9e0dcb1a4be26c28f3d08f2197f5aaa
+PlayerSettlementCultureVisuals_DLL_SHA256=1d959502325aea1d5661b1aeab69447e6549601aa1819e226096dc3d8f055848
+PlayerSettlementVillageRaidFix_DLL_SHA256=d4f469b93d39e9dff29581fe529968d4f9278396066ade66e5c72ff8ba900401
+PlayerSettlementTORRuntime_DLL_SHA256=3cb991e9297d4485619eb675969dea653237b9554334a8e87e6315e194be45c3
+Fixes=Prefab-backed generated map visuals; immediate native owner-cache registration for new towns/castles; one-shot existing-save owner-cache repair; retained generated-village reference repair
+StaticValidation=24 checks passed
+RuntimeValidation=Not available in this environment
+Symbols=PlayerSettlementVillageRaidFix.pdb omitted because the supplied DLL was IL-patched and no matching PDB could be regenerated in this environment

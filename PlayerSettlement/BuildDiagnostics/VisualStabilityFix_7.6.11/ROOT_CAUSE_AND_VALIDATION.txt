@@ -1,0 +1,51 @@
+PLAYER SETTLEMENT 7.6.11 - TOR VISUAL PHYSICS / SAVE-LOAD FIX
+
+Observed failure
+----------------
+Version 7.6.10 still crashed while loading an existing campaign with:
+SandBox.View.Map.Visuals.SettlementVisual.SetSettlementLevelVisibility
+-> SettlementVisual.RefreshPartyIcon
+-> SettlementVisual.ValidateIsDirty
+
+Correction to the 7.6.10 diagnosis
+----------------------------------
+The 7.6.10 banner-placeholder explanation was incorrect. Bannerlord's own
+SettlementVisual.OnStartup stores map_banner_placeholder entities and then removes those
+scene placeholders. Restoring their native lifetime is therefore not the correct fix.
+
+Source-supported failure path
+-----------------------------
+Bannerlord's SetSettlementLevelVisibility recursively enumerates every child of the
+settlement StrategicEntity and invokes native upgrade-mask, visibility, and physics calls
+on each child.
+
+The ToR compatibility path had been creating a settlement hierarchy with
+GameEntity.CopyFromPrefab(source), where source was a live campaign-scene GameEntity.
+CopyFromPrefab is the prefab-object path; it is not the scene-instance clone API. Feeding
+it a live campaign entity can produce a hierarchy that is unsafe for Bannerlord's later
+native recursive physics/level pass. The repeated protected-memory crash is consistent
+with an invalid child entity or native physics state in that hierarchy.
+
+Fix
+---
+- Exact-culture ToR visuals are now created as independent scene entities.
+- The preferred path resolves the source prefab name and calls GameEntity.Instantiate.
+- If no reusable prefab name is available, the engine's scene-instance clone API,
+  GameEntity.CopyFrom(scene, source, ...), is used instead.
+- GameEntity.CopyFromPrefab(liveCampaignEntity) is no longer used.
+- Bannerlord's original banner-placeholder removal lifecycle is restored.
+- SettlementVisual.SetSettlementLevelVisibility is bypassed only for ToR player-built
+  settlements, preventing the crashing recursive native physics pass on that custom
+  runtime hierarchy.
+- Native settlement-level visibility behavior remains unchanged for every other
+  settlement.
+- The 7.6.9 startup null-safety, village-raid visual fix, and custom fortification
+  ownership registration for siege AI are retained.
+- No campaign-map scan or recurring repair loop was added.
+
+Runtime caveat
+--------------
+The narrow bypass means ToR player-built settlement visuals do not receive Bannerlord's
+normal recursive level-mask/physics refresh. These are fixed template visuals, but their
+walls, banners, ports, siege state, and icon behavior must still be verified in game.
+Live Bannerlord execution was not available in the CI environment.

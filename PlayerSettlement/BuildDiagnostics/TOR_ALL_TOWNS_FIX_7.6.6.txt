@@ -1,0 +1,84 @@
+Player Settlements 7.6.6 - Complete TOR town template synchronization
+====================================================================
+
+Symptom
+-------
+Cultures exposed only the hand-authored town variants present in the legacy
+PlayerSettlement_TOR XML pack. Empire, for example, exposed one town template
+although TOR contains multiple live Empire towns.
+
+Trigger
+-------
+Opening town model selection used Player Settlement's static CultureTemplates
+collection. That collection was populated only from the compatibility pack's
+hard-coded XML files and was never synchronized with TOR's current settlements.
+
+Root cause
+----------
+The TOR compatibility layer duplicated TOR settlement coverage as a manually
+maintained template list. The authoritative town set and scene definitions live
+in TOR_Core/ModuleData/tor_settlements.xml and the loaded campaign Settlement.All
+collection, so the duplicate list could become incomplete or stale.
+
+Violated invariant
+------------------
+Every visible loaded TOR town must have exactly one selectable town variant for
+its culture, and selecting variant N must use that same TOR town for both:
+- internal/location scene data; and
+- campaign-map visual resolution.
+
+Fix
+---
+- Added PlayerSettlementTORRuntime.dll, loaded only by PlayerSettlement_TOR.
+- On each campaign session launch, once only for that session, it reads TOR's
+  authoritative tor_settlements.xml.
+- It iterates live visible Settlement.All towns in the exact ordering/filtering
+  used by the existing 7.6.5 exact-culture campaign-map visual resolver.
+- For every live TOR town, it clones that exact settlement XML node into a
+  selectable player-town template for the matching Culture.StringId.
+- The source Town component, Locations, scene names, lord hall, tavern, arena,
+  prison, houses, CommonAreas, background/wait meshes, and other TOR town data
+  are retained from the original TOR settlement.
+- Only player-specific identity/ownership/position/template fields are replaced.
+- Source prefab overrides and absolute port coordinates are removed; 7.6.5's
+  exact-culture visual copier remains authoritative for campaign-map visuals.
+- Old hard-coded TOR town entries are removed from the runtime template set so
+  they cannot create duplicates or stale variants. Castle/village templates are
+  untouched.
+- Cultures with live TOR towns but no previous town template list are added at
+  runtime.
+- Generated variant IDs retain _variant_N_ToR so the selected source survives
+  construction, save, and reload through the existing 7.6.5 persisted visual path.
+
+Performance
+-----------
+No campaign tick, periodic scan, or recurring map callback was added. Work runs
+once on OnSessionLaunched per campaign and consists of one XML load plus one pass
+over Settlement.All. Normal campaign-map runtime cost after launch is unchanged.
+
+Regression controls
+-------------------
+- Existing 7.6.5 same-culture visual recovery remains unchanged.
+- Existing gate placement/save overwrite behavior remains unchanged.
+- Existing castle/village compatibility templates remain unchanged.
+- Returning to menu and starting/loading another campaign re-registers correctly.
+- Repeated session initialization removes the prior generated runtime document
+  before rebuilding; no runtime-template accumulation.
+
+Validation
+----------
+- Helper compiled successfully against Bannerlord 1.3.15 reference assemblies.
+- Assembly version: 7.6.6.0.
+- No direct PlayerSettlement assembly reference; integration is reflection-based
+  against the existing public Main/CultureSettlementTemplate fields to avoid a
+  hard binary dependency beyond the declared module dependency.
+- Module XML parses successfully.
+- Both desktop binary targets contain identical helper binaries.
+- Core 7.6.5 gameplay DLLs are preserved byte-for-byte.
+
+Runtime uncertainty
+-------------------
+Bannerlord/TOR cannot be launched in this build environment. The code paths,
+assembly compatibility, XML transformations, module metadata and package
+integrity were statically/build validated; final in-game UI cycling and scene
+entry still require an actual Bannerlord 1.3.15 + TOR WiTM 1.16 run.

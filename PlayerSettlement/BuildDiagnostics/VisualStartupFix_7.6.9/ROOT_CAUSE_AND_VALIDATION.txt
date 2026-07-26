@@ -1,0 +1,65 @@
+Player Settlement 7.6.9 root cause and validation
+==================================================
+
+Observed runtime stack
+----------------------
+System.NullReferenceException
+  at BannerlordPlayerSettlement.Patches.PartyVisualPatch.OnStartup(
+      SettlementVisual& __instance,
+      Dictionary<int,List<GameEntity>>& _gateBannerEntitiesWithLevels)
+
+followed immediately by:
+
+System.NullReferenceException
+  at SandBox.View.Map.Visuals.SettlementVisual.OnStartup_Patch1(
+      SettlementVisual this)
+
+The pair occurred twice, accounting for all four red startup messages.
+
+Interpretation
+--------------
+The custom prefix reached a null-dependent path while initializing a generated
+settlement visual. Its broad catch logged the exception and then returned true.
+Harmony therefore continued into Bannerlord's original SettlementVisual.OnStartup
+with the same incomplete visual state, producing the paired second exception.
+
+Corrected invariants
+--------------------
+- Non-custom settlements always return to native startup untouched.
+- Custom/overwritten settlements use the Player Settlement startup path.
+- Once a custom visual enters that path, a failure cannot fall through into the
+  native startup method with incomplete state.
+- A missing strategic entity is handled without dereferencing it.
+- ToR generated settlement ids use an independent same-culture visual copy.
+- Map banner placeholders may have no parent.
+- Siege camp frame collections may be absent.
+- Reflection accessors and map visual dictionaries may be unavailable.
+- Saved deep-edit indices may no longer match the current visual hierarchy.
+- A failed preview cannot advance to a different culture as a fallback.
+
+Preserved behavior
+------------------
+- Placement-tick-owned gate and port commits.
+- Save-and-continue without an in-process campaign reload.
+- Exact-culture ToR settlement visuals.
+- Independent prefab-backed copied map entities.
+- Native owner transition for new player towns/castles.
+- Existing-save raid and ownership repair.
+- No campaign-map tick scan.
+
+Validation performed
+--------------------
+- Exact source-input SHA-256 checks before reconstruction.
+- Source reconstructed from upstream commit
+  52d86c7480778afb83e476ac742895f73fbf6d7f.
+- Historical validated source patch SHA-256:
+  0a29aad0def0e5a71f211ebeb0c7258abc9c80e4679286ba9356a171cd6234f1
+- CI build completed with 0 errors.
+- Assembly version verified as 7.6.9.0.
+- Source-level regression gates rejected the old unsafe dereferences and fallback.
+- The integrated source contains CultureVisualHelper; the final package contains
+  no PlayerSettlementCultureVisuals runtime assembly or loader entry.
+- Both Win64 and Gaming.Desktop.x64 copies are identical.
+- XML and package integrity validation passed.
+
+Runtime testing remains required.
