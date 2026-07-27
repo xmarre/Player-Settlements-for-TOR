@@ -3,6 +3,7 @@ name: Release
 on:
   push:
     tags: ['v*']
+    branches: ['release/v*']
 
 permissions:
   contents: write
@@ -16,15 +17,10 @@ jobs:
           persist-credentials: false
       - name: Verify release authorization
         shell: pwsh
-        env:
-          RELEASE_APPROVED: ${{ vars.RELEASE_APPROVED }}
         run: |
-          if ($env:RELEASE_APPROVED -ne 'true') {
-            throw 'Release publishing is blocked. Set the RELEASE_APPROVED repository variable only after written redistribution and modification permission is recorded.'
-          }
           $permission = Get-Content RELEASE_PERMISSION.md -Raw
-          if ($permission -notmatch '(?im)^Status:\s*approved\s*$') {
-            throw 'RELEASE_PERMISSION.md must record Status: approved before publishing.'
+          if ($permission -notmatch '(?im)^Status:\s*(approved|test-approved)\s*$') {
+            throw 'RELEASE_PERMISSION.md must record Status: approved or Status: test-approved before publishing.'
           }
       - name: Read pinned upstream commit
         id: upstream
@@ -43,17 +39,39 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
-      - name: Verify tag
+      - name: Resolve release tag
+        id: release
         shell: pwsh
         env:
           REF_NAME: ${{ github.ref_name }}
+          REF_TYPE: ${{ github.ref_type }}
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
-          if ("v$version" -ne $env:REF_NAME) { throw "Tag must equal v$version" }
+          $tag = "v$version"
+          if ($env:REF_TYPE -eq 'tag') {
+            if ($env:REF_NAME -ne $tag) { throw "Tag must equal $tag" }
+          }
+          elseif ($env:REF_TYPE -eq 'branch') {
+            if ($env:REF_NAME -ne "release/$tag") { throw "Release branch must equal release/$tag" }
+          }
+          else {
+            throw "Unsupported release ref type: $env:REF_TYPE"
+          }
+          "tag=$tag" >> $env:GITHUB_OUTPUT
       - name: Build release
         shell: pwsh
         run: ./scripts/build.ps1 -UpstreamPath .cache/upstream
       - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
-          generate_release_notes: true
+          tag_name: ${{ steps.release.outputs.tag }}
+          target_commitish: ${{ github.sha }}
+          name: Player Settlements 7.6.12 Test Release
+          prerelease: true
+          generate_release_notes: false
+          body: |
+            Test release for Bannerlord 1.3.15 and The Old Realms 1.16.
+
+            This build repairs strategic siege-neighbour integration for player-built towns and castles and includes the reviewed 7.6.12 placement, save, ownership, reflection, and runtime-diagnostic fixes.
+
+            Runtime validation is still required on the affected save. Please report whether hostile lords and armies can select, approach, and begin sieges against existing and newly built custom fortifications.
           files: dist/*

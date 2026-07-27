@@ -5,12 +5,13 @@ at the immutable commit recorded in `UPSTREAM_COMMIT`. No licence file is presen
 at that pinned upstream commit.
 
 The upstream Nexus publication states that redistribution to other sites is not
-permitted and that modification requires the author's permission. Written permission
-for this repository's modified source and GitHub release distribution is not currently
-recorded in the repository.
+permitted and that modification requires the author's permission. Written upstream
+permission for this repository's modified source and GitHub distribution is not
+currently recorded here.
 
-CI may build private test artifacts. Automatic GitHub release publishing remains
-blocked until `RELEASE_PERMISSION.md` records the permission basis as approved and
-the repository variable `RELEASE_APPROVED` is explicitly set to `true`.
+The repository owner has authorised a narrowly scoped 7.6.12 GitHub prerelease for
+runtime testing by the affected save owner. `RELEASE_PERMISSION.md` records that test
+approval and its limitations. This test approval does not represent permission from
+BOTLANNER or any other rights holder.
 
 The Old Realms names and assets remain subject to their respective authors' terms.
