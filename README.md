@@ -25,18 +25,24 @@ XML, and writes the installable archive and SHA-256 file to `dist/`.
 
 ## Release
 
-Push a tag such as `v7.6.12`. The release workflow rebuilds from the pinned
-source, publishes the ZIP and checksum, and creates the GitHub release.
+CI produces reviewable build artifacts. Tag-driven GitHub release publishing is
+implemented, yet remains gated until the repository records written modification
+and redistribution permission. `RELEASE_PERMISSION.md` must contain
+`Status: approved`, and the repository Actions variable `RELEASE_APPROVED` must
+be set to `true`. A tag such as `v7.6.12` then rebuilds from the pinned source,
+publishes the ZIP and checksum, and creates the GitHub release.
 
 ## 7.6.12 siege-AI fix
 
 Bannerlord's military AI enumerates a faction's settlements, then uses the
 fortification-neighbour cache to calculate siege-front value. Dynamically created
 fortifications were registered in clan/faction ownership collections in 7.6.11,
-yet remained absent from the precomputed neighbour cache. An empty neighbour list
-produces a zero siege score, excluding the settlement before target scoring.
+yet remained absent from, or incompletely represented in, the precomputed
+neighbour cache. Missing native neighbour edges can produce a zero or incomplete
+siege-front score and exclude the settlement before normal target scoring.
 
-7.6.12 incrementally runs Bannerlord's own neighbour test for each missing custom
+7.6.12 incrementally runs Bannerlord's own navigation-specific candidate filter,
+neighbour test, and symmetric edge-registration method for each custom
 fortification after a save finishes loading and immediately after construction.
-It adds only the missing native cache edges, performs no campaign tick scan, and
-does not alter ownership of conquered or transferred settlements.
+It reconciles every missing native cache edge, performs no campaign tick scan,
+and does not alter ownership of conquered or transferred settlements.

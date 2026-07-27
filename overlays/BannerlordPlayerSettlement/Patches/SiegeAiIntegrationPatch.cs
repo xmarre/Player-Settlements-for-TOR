@@ -7,14 +7,13 @@ using BannerlordPlayerSettlement.Behaviours;
 using HarmonyLib;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.ComponentInterfaces;
-using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
 
 namespace BannerlordPlayerSettlement.Patches
 {
     /// <summary>
-    /// Registers dynamically created fortifications in Bannerlord's strategic
+    /// Reconciles dynamically created fortifications with Bannerlord's strategic
     /// fortification-neighbour cache. Native siege target selection assigns a zero
     /// score to a fortification with no cached neighbours, which makes an otherwise
     /// valid player settlement invisible to besieger and army objective selection.
@@ -45,14 +44,12 @@ namespace BannerlordPlayerSettlement.Patches
             if (!IsPlayerFortification(settlement) || Campaign.Current == null)
                 return;
 
-            List<Settlement> fortifications = Settlement.All
-                .Where(candidate => candidate != null && candidate.IsFortification && candidate.Town != null)
+            List<Settlement> allSettlements = Settlement.All
+                .Where(candidate => candidate != null)
                 .ToList();
 
-            if (fortifications.Count < 2)
-                return;
-
-            int repairedCaches = 0;
+            int reconciledCaches = 0;
+            int addedEdges = 0;
             int resultingNeighbors = 0;
 
             foreach (object cache in EnumerateNavigationCaches(Campaign.Current.Models.MapDistanceModel))
@@ -60,35 +57,59 @@ namespace BannerlordPlayerSettlement.Patches
                 try
                 {
                     MethodInfo getNeighbors = FindMethod(cache.GetType(), "GetNeighbors", 1);
+                    MethodInfo getUpdatedSettlements = FindMethod(
+                        cache.GetType(),
+                        "GetUpdatedSettlementsForNeighborDetection",
+                        1);
                     MethodInfo checkBeingNeighbor = FindMethod(cache.GetType(), "CheckBeingNeighbor", 3);
                     MethodInfo addNeighbor = FindMethod(cache.GetType(), "AddNeighbor", 2);
                     if (getNeighbors == null || checkBeingNeighbor == null || addNeighbor == null)
                         continue;
 
-                    int existingCount = CountItems(getNeighbors.Invoke(cache, new object[] { settlement }));
-                    if (existingCount > 0)
-                    {
-                        resultingNeighbors = Math.Max(resultingNeighbors, existingCount);
+                    List<Settlement> candidates = GetNativeCandidates(
+                        cache,
+                        getUpdatedSettlements,
+                        allSettlements);
+                    if (!candidates.Contains(settlement))
                         continue;
-                    }
 
-                    foreach (Settlement candidate in fortifications)
+                    List<Settlement> currentNeighbors = ReadSettlements(
+                        getNeighbors.Invoke(cache, new object[] { settlement }));
+                    var currentIds = new HashSet<string>(
+                        currentNeighbors
+                            .Where(neighbor => !string.IsNullOrEmpty(neighbor?.StringId))
+                            .Select(neighbor => neighbor.StringId),
+                        StringComparer.OrdinalIgnoreCase);
+                    var currentReferences = new HashSet<Settlement>(currentNeighbors);
+                    int cacheAddedEdges = 0;
+
+                    foreach (Settlement candidate in candidates)
                     {
-                        if (ReferenceEquals(candidate, settlement))
+                        if (candidate == null || ReferenceEquals(candidate, settlement))
+                            continue;
+                        if (currentReferences.Contains(candidate) ||
+                            (!string.IsNullOrEmpty(candidate.StringId) && currentIds.Contains(candidate.StringId)))
                             continue;
 
                         object result = checkBeingNeighbor.Invoke(
                             cache,
-                            new object[] { fortifications, settlement, candidate });
-                        if (result is bool isNeighbor && isNeighbor)
-                            addNeighbor.Invoke(cache, new object[] { settlement, candidate });
+                            new object[] { candidates, settlement, candidate });
+                        if (!(result is bool isNeighbor) || !isNeighbor)
+                            continue;
+
+                        addNeighbor.Invoke(cache, new object[] { settlement, candidate });
+                        currentReferences.Add(candidate);
+                        if (!string.IsNullOrEmpty(candidate.StringId))
+                            currentIds.Add(candidate.StringId);
+                        cacheAddedEdges++;
                     }
 
                     int newCount = CountItems(getNeighbors.Invoke(cache, new object[] { settlement }));
-                    if (newCount > 0)
+                    resultingNeighbors = Math.Max(resultingNeighbors, newCount);
+                    if (cacheAddedEdges > 0)
                     {
-                        repairedCaches++;
-                        resultingNeighbors = Math.Max(resultingNeighbors, newCount);
+                        reconciledCaches++;
+                        addedEdges += cacheAddedEdges;
                     }
                 }
                 catch (Exception exception)
@@ -99,8 +120,25 @@ namespace BannerlordPlayerSettlement.Patches
             }
 
             Debug.Print("[PlayerSettlement] Strategic neighbour integration for " +
-                        settlement.StringId + ": repaired caches=" + repairedCaches +
+                        settlement.StringId + ": reconciled caches=" + reconciledCaches +
+                        ", added edges=" + addedEdges +
                         ", neighbours=" + resultingNeighbors + ".");
+        }
+
+        private static List<Settlement> GetNativeCandidates(
+            object cache,
+            MethodInfo getUpdatedSettlements,
+            List<Settlement> allSettlements)
+        {
+            if (getUpdatedSettlements != null)
+            {
+                return ReadSettlements(
+                    getUpdatedSettlements.Invoke(cache, new object[] { allSettlements }));
+            }
+
+            return allSettlements
+                .Where(candidate => candidate.IsFortification && candidate.Town != null)
+                .ToList();
         }
 
         private static IEnumerable<object> EnumerateNavigationCaches(MapDistanceModel model)
@@ -167,6 +205,20 @@ namespace BannerlordPlayerSettlement.Patches
                     return method;
             }
             return null;
+        }
+
+        private static List<Settlement> ReadSettlements(object value)
+        {
+            var settlements = new List<Settlement>();
+            if (!(value is IEnumerable enumerable))
+                return settlements;
+
+            foreach (object item in enumerable)
+            {
+                if (item is Settlement settlement)
+                    settlements.Add(settlement);
+            }
+            return settlements;
         }
 
         private static int CountItems(object value)

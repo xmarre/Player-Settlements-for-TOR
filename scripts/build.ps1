@@ -23,10 +23,26 @@ if (-not (Test-Path (Join-Path $UpstreamPath ".git"))) {
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $UpstreamPath) | Out-Null
     git clone https://github.com/BOTLANNER/BannerlordPlayerSettlement.git $UpstreamPath
 }
-if ((git -C $UpstreamPath rev-parse $commit).Trim() -ne $commit) {
+
+function Resolve-Commit([string]$repo, [string]$revision) {
+    $previousNativePreference = $PSNativeCommandUseErrorActionPreference
+    try {
+        $PSNativeCommandUseErrorActionPreference = $false
+        $resolved = & git -C $repo rev-parse --verify --quiet "$revision^{commit}" 2>$null
+        $exitCode = $LASTEXITCODE
+    }
+    finally {
+        $PSNativeCommandUseErrorActionPreference = $previousNativePreference
+    }
+
+    if ($exitCode -ne 0 -or [string]::IsNullOrWhiteSpace($resolved)) { return $null }
+    return ([string]$resolved).Trim()
+}
+
+if ((Resolve-Commit $UpstreamPath $commit) -ne $commit) {
     git -C $UpstreamPath fetch --no-tags origin $commit
 }
-if ((git -C $UpstreamPath rev-parse $commit).Trim() -ne $commit) { throw "Cannot resolve pinned upstream commit $commit" }
+if ((Resolve-Commit $UpstreamPath $commit) -ne $commit) { throw "Cannot resolve pinned upstream commit $commit" }
 
 if (Test-Path $source) { Remove-Item -Recurse -Force $source }
 New-Item -ItemType Directory -Force -Path $work | Out-Null
@@ -98,8 +114,8 @@ try {
             $relative = $_.FullName.Substring($stage.Length).TrimStart('\','/').Replace('\','/')
             $entry = $archive.CreateEntry($relative,[IO.Compression.CompressionLevel]::Optimal)
             $entry.LastWriteTime = [DateTimeOffset]::new(2020,1,1,0,0,0,[TimeSpan]::Zero)
-            $output = $entry.Open(); $input = [IO.File]::OpenRead($_.FullName)
-            try { $input.CopyTo($output) } finally { $input.Dispose(); $output.Dispose() }
+            $outputStream = $entry.Open(); $sourceStream = [IO.File]::OpenRead($_.FullName)
+            try { $sourceStream.CopyTo($outputStream) } finally { $sourceStream.Dispose(); $outputStream.Dispose() }
         }
     } finally { $archive.Dispose() }
 } finally { $stream.Dispose() }

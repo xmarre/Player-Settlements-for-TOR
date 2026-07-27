@@ -13,12 +13,22 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read pinned upstream commit
+        id: upstream
+        shell: pwsh
+        run: |
+          $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
+          if ($commit -notmatch '^[0-9a-f]{40}$') { throw 'UPSTREAM_COMMIT must contain one lowercase 40-character SHA.' }
+          "commit=$commit" >> $env:GITHUB_OUTPUT
       - uses: actions/checkout@v4
         with:
           repository: BOTLANNER/BannerlordPlayerSettlement
-          ref: 52d86c7480778afb83e476ac742895f73fbf6d7f
+          ref: ${{ steps.upstream.outputs.commit }}
           path: .cache/upstream
           fetch-depth: 1
+          persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x

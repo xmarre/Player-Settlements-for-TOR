@@ -12,20 +12,44 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify release authorization
+        shell: pwsh
+        env:
+          RELEASE_APPROVED: ${{ vars.RELEASE_APPROVED }}
+        run: |
+          if ($env:RELEASE_APPROVED -ne 'true') {
+            throw 'Release publishing is blocked. Set the RELEASE_APPROVED repository variable only after written redistribution and modification permission is recorded.'
+          }
+          $permission = Get-Content RELEASE_PERMISSION.md -Raw
+          if ($permission -notmatch '(?im)^Status:\s*approved\s*$') {
+            throw 'RELEASE_PERMISSION.md must record Status: approved before publishing.'
+          }
+      - name: Read pinned upstream commit
+        id: upstream
+        shell: pwsh
+        run: |
+          $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
+          if ($commit -notmatch '^[0-9a-f]{40}$') { throw 'UPSTREAM_COMMIT must contain one lowercase 40-character SHA.' }
+          "commit=$commit" >> $env:GITHUB_OUTPUT
       - uses: actions/checkout@v4
         with:
           repository: BOTLANNER/BannerlordPlayerSettlement
-          ref: 52d86c7480778afb83e476ac742895f73fbf6d7f
+          ref: ${{ steps.upstream.outputs.commit }}
           path: .cache/upstream
           fetch-depth: 1
+          persist-credentials: false
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
       - name: Verify tag
         shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}
         run: |
           $version = (Get-Content VERSION -Raw).Trim()
-          if ("v$version" -ne "${{ github.ref_name }}") { throw "Tag must equal v$version" }
+          if ("v$version" -ne $env:REF_NAME) { throw "Tag must equal v$version" }
       - name: Build release
         shell: pwsh
         run: ./scripts/build.ps1 -UpstreamPath .cache/upstream
