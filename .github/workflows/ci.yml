@@ -24,8 +24,25 @@ jobs:
           dotnet-version: 8.0.x
       - name: Build, validate, and package
         shell: pwsh
-        run: ./scripts/build.ps1 -UpstreamPath .cache/upstream
-      - uses: actions/upload-artifact@v4
+        run: |
+          try {
+            ./scripts/build.ps1 -UpstreamPath .cache/upstream
+          }
+          catch {
+            $details = ($_ | Format-List * -Force | Out-String) + "`nScript stack:`n" + $_.ScriptStackTrace
+            [IO.File]::WriteAllText("ci-error.txt", $details, [Text.UTF8Encoding]::new($false))
+            throw
+          }
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-${{ github.sha }}
+          path: ci-error.txt
+          if-no-files-found: error
+      - name: Upload release candidate
+        if: success()
+        uses: actions/upload-artifact@v4
         with:
           name: Player-Settlements-${{ github.sha }}
           path: dist/*
