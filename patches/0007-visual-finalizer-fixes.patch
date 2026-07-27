@@ -1,0 +1,40 @@
+diff --git a/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs b/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs
+index e052601..399e725 100644
+--- a/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs
++++ b/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs
+@@ -452,7 +452,7 @@ namespace BannerlordPlayerSettlement.Patches
+             }
+         }
+ 
+-        private static void ApplySavedVisualTransform(GameEntity strategicEntity, Mat3Saveable? rotation, List<DeepTransformEdit> deepEdits)
++        private static void ApplySavedVisualTransform(GameEntity strategicEntity, Mat3Saveable? rotation, List<DeepTransformEdit>? deepEdits)
+         {
+             if (strategicEntity == null)
+             {
+@@ -533,24 +533,11 @@ namespace BannerlordPlayerSettlement.Patches
+         [HarmonyFinalizer]
+         //[HarmonyPatch(nameof(SettlementVisual.OnStartup))]
+         [HarmonyPatch(nameof(OnStartup))]
+-        public static Exception FixOnStartup(object __exception, ref SettlementVisual __instance)
++        public static Exception? FixOnStartup(Exception? __exception, ref SettlementVisual __instance)
+         {
+             if (__exception != null)
+             {
+-                var e = __exception;
+-                if (e != null)
+-                {
+-                    if (e is Exception ex)
+-                    {
+-
+-                        LogManager.Log.NotifyBad(ex);
+-                    }
+-                    else
+-                    {
+-
+-                        LogManager.Log.NotifyBad(e.ToString());
+-                    }
+-                }
++                LogManager.Log.NotifyBad(__exception);
+             }
+             return null;
+         }

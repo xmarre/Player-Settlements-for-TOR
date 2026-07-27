@@ -1,0 +1,59 @@
+name: Build and validate
+
+on:
+  push:
+    branches: [main, 'agent/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Read pinned upstream commit
+        id: upstream
+        shell: pwsh
+        run: |
+          $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
+          if ($commit -notmatch '^[0-9a-f]{40}$') { throw 'UPSTREAM_COMMIT must contain one lowercase 40-character SHA.' }
+          "commit=$commit" >> $env:GITHUB_OUTPUT
+      - uses: actions/checkout@v4
+        with:
+          repository: BOTLANNER/BannerlordPlayerSettlement
+          ref: ${{ steps.upstream.outputs.commit }}
+          path: .cache/upstream
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build, validate, and package
+        shell: pwsh
+        run: |
+          try {
+            ./scripts/build.ps1 -UpstreamPath .cache/upstream
+          }
+          catch {
+            $details = ($_ | Format-List * -Force | Out-String) + "`nScript stack:`n" + $_.ScriptStackTrace
+            [IO.File]::WriteAllText("ci-error.txt", $details, [Text.UTF8Encoding]::new($false))
+            throw
+          }
+      - name: Upload failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-failure-${{ github.sha }}
+          path: ci-error.txt
+          if-no-files-found: error
+      - name: Upload release candidate
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Player-Settlements-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error

@@ -1,0 +1,13 @@
+diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+index e5d97ab..48ba869 100644
+--- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
++++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+@@ -827,7 +827,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+                         var castles = PlayerSettlementInfo.Instance.Castles;
+                         if (castles == null)
+                         {
+-                            castles = (PlayerSettlementInfo.Instance.Towns = new List<PlayerSettlementItem>());
++                            castles = (PlayerSettlementInfo.Instance.Castles = new List<PlayerSettlementItem>());
+                         }
+ 
+                         for (int c = 0; c < castles.Count; c++)

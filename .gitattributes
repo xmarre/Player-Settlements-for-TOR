@@ -1,0 +1,9 @@
+* text=auto eol=lf
+*.ps1 text eol=crlf
+*.xml text eol=lf
+*.cs text eol=lf
+*.csproj text eol=lf
+*.patch text eol=lf
+*.zip binary
+*.dll binary
+*.pdb binary

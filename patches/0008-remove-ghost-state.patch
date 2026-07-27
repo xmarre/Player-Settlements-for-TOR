@@ -1,0 +1,98 @@
+diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+index e5d97ab..0db7058 100644
+--- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
++++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+@@ -168,14 +168,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+         #endregion
+ 
+         #region Gate and Port Placement
+-        const string GhostGateEntityId = "player_settlement_ghost_gate";
+-        const string GhostGatePrefabId = GhostGateEntityId;
+-        const string GhostPortEntityId = GhostGateEntityId;
+-        const string GhostPortPrefabId = GhostPortEntityId;
+-        private GameEntity? ghostGateVisualEntity = null;
+         private MatrixFrame? gatePlacementFrame = null;
+-
+-        private GameEntity? ghostPortVisualEntity = null;
+         private MatrixFrame? portPlacementFrame = null;
+ 
+         bool gateSupported = false;
+@@ -913,7 +906,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+                     identity.Scale(new Vec3(0.25f, 0.25f, 0.25f));
+ 
+                     portPlacementFrame = identity;
+-                    this.SetFrame(ghostPortVisualEntity, ref identity);
+ 
+                     bool flag = currentFace.IsValid() && !isOnLand; // && currentFace.FaceIslandIndex == MobileParty.MainParty.CurrentNavigationFace.FaceIslandIndex; // Campaign.Current.MapSceneWrapper.AreFacesOnSameIsland(currentFace, MobileParty.MainParty.CurrentNavigationFace, ignoreDisabled: false);
+ 
+@@ -967,7 +959,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+                     identity.Scale(new Vec3(0.25f, 0.25f, 0.25f));
+ 
+                     gatePlacementFrame = identity;
+-                    this.SetFrame(ghostGateVisualEntity, ref identity);
+ 
+                     bool flag = currentFace.IsValid() && isOnLand;
+ 
+@@ -1944,8 +1940,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+             // The gate click has completed. Keep its frame, but leave the gate-placement phase
+             // and remove only the temporary gate marker before deciding about a port.
+             gatePlacementActive = false;
+-            ghostGateVisualEntity?.ClearEntity();
+-            ghostGateVisualEntity = null;
+ 
+             // Ensure no previous port frame gets used. If a port was opted into and then backed out off, the frame might still exist
+             portPlacementFrame = null;
+@@ -1995,21 +1989,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+                     return;
+                 }), true, false);
+             }
+-
+-            //if (applyPending != null && mapScreen.SceneLayer.Input.GetIsMouseActive() && PlacementSupported)
+-            //{
+-            //    try
+-            //    {
+-            //        PlacementSupported = false;
+-            //        ShowPortPosHelp();
+-            //        ShowGhostPortVisualEntity(true);
+-            //        return;
+-            //    }
+-            //    catch (Exception e)
+-            //    {
+-            //        LogManager.Log.NotifyBad(e);
+-            //    }
+-            //}
+         }
+ 
+         public void StartGatePlacement()
+@@ -2128,8 +2107,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+             portSupported = false;
+             gatePlacementActive = false;
+             portPlacementActive = false;
+-            ghostGateVisualEntity = null;
+-            ghostPortVisualEntity = null;
+             gatePlacementFrame = null;
+             portPlacementFrame = null;
+ 
+@@ -2158,11 +2135,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+             settlementVisualEntity?.ClearEntity();
+             settlementVisualEntity = null;
+ 
+-            ghostGateVisualEntity?.ClearEntity();
+-            ghostGateVisualEntity = null;
+ 
+-            ghostPortVisualEntity?.ClearEntity();
+-            ghostPortVisualEntity = null;
+ 
+             LogManager.EventTracer.Trace();
+         }
+@@ -4621,10 +4594,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+         {
+             gatePlacementActive = false;
+             portPlacementActive = false;
+-            ghostGateVisualEntity?.ClearEntity();
+-            ghostGateVisualEntity = null;
+-            ghostPortVisualEntity?.ClearEntity();
+-            ghostPortVisualEntity = null;
+             gatePlacementFrame = null;
+             portPlacementFrame = null;
+ 

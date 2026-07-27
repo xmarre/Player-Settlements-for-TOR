@@ -1,0 +1,101 @@
+diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+index e5d97ab..940f326 100644
+--- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
++++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+@@ -1010,29 +1010,32 @@ namespace BannerlordPlayerSettlement.Behaviours
+                         }
+                     }
+ 
+-                    if (deepEditPrefab == settlementVisualPrefab)
++                    if (deepEditPrefab == settlementVisualPrefab && deepTransformEdits != null)
+                     {
+                         foreach (var dte in deepTransformEdits)
+                         {
+-                            var entity = dte.Index < 0 ? settlementVisualEntity : settlementVisualEntityChildren[dte.Index];
+-                            var local = entity!.GetFrame();
+-                            local.rotation = dte?.Transform?.RotationScale != null ? dte.Transform.RotationScale : local.rotation;
+-                            if (dte!.Index >= 0)
++                            if (dte == null || (dte.Index >= 0 && dte.Index >= settlementVisualEntityChildren.Count))
+                             {
+-                                local.origin = dte?.Transform?.Position != null ? dte.Transform.Position : local.origin;
++                                continue;
+                             }
+-                            // No else statement. Offsets do not get applied here otherwise it would cause infinite motion. Rather, offsets are calculated at the end.
+ 
+-                            this.SetFrame(entity, ref local, atGround: false);
+-
+-                            if (dte?.IsDeleted ?? false)
++                            var entity = dte.Index < 0 ? settlementVisualEntity : settlementVisualEntityChildren[dte.Index];
++                            if (entity == null)
+                             {
+-                                entity.SetVisibilityExcludeParents(false);
++                                continue;
+                             }
+-                            else if (entity != null)
++
++                            var local = entity.GetFrame();
++                            local.rotation = dte.Transform?.RotationScale ?? local.rotation;
++                            if (dte.Index >= 0)
+                             {
+-                                entity.SetVisibilityExcludeParents(true);
++                                local.origin = dte.Transform?.Position ?? local.origin;
+                             }
++                            // No else statement. Offsets do not get applied here otherwise it would cause infinite motion. Rather, offsets are calculated at the end.
++
++                            this.SetFrame(entity, ref local, atGround: false);
++
++                            entity.SetVisibilityExcludeParents(!dte.IsDeleted);
+                         }
+                     }
+ 
+@@ -1049,33 +1052,35 @@ namespace BannerlordPlayerSettlement.Behaviours
+                             // Don't show help as gate placement will show its own, or apply will occur directly
+                             ToggleDeepEdit(showHelp: false);
+ 
+-                            if (deepEditPrefab == settlementVisualPrefab)
++                            if (deepEditPrefab == settlementVisualPrefab && deepTransformEdits != null)
+                             {
+                                 foreach (var dte in deepTransformEdits)
+                                 {
+-                                    var entity = dte.Index < 0 ? settlementVisualEntity : settlementVisualEntityChildren[dte.Index];
+-                                    var local = entity!.GetFrame();
+-                                    local.rotation = dte?.Transform?.RotationScale != null ? dte.Transform.RotationScale : local.rotation;
+-                                    if (dte!.Index >= 0)
++                                    if (dte == null || (dte.Index >= 0 && dte.Index >= settlementVisualEntityChildren.Count))
+                                     {
+-                                        local.origin = dte?.Transform?.Position != null ? dte.Transform.Position : local.origin;
++                                        continue;
+                                     }
+-                                    else
++
++                                    var entity = dte.Index < 0 ? settlementVisualEntity : settlementVisualEntityChildren[dte.Index];
++                                    if (entity == null)
+                                     {
+-                                        // Offsets must be applied here as the next phase wont reapply or recalculate for offsets
+-                                        local.origin = dte?.Transform?.Offsets != null ? local.origin + dte.Transform.Offsets : local.origin;
++                                        continue;
+                                     }
+ 
+-                                    entity.SetFrame(ref local);
+-
+-                                    if (dte?.IsDeleted ?? false)
++                                    var local = entity.GetFrame();
++                                    local.rotation = dte.Transform?.RotationScale ?? local.rotation;
++                                    if (dte.Index >= 0)
+                                     {
+-                                        entity.SetVisibilityExcludeParents(false);
++                                        local.origin = dte.Transform?.Position ?? local.origin;
+                                     }
+-                                    else if (entity != null)
++                                    else
+                                     {
+-                                        entity.SetVisibilityExcludeParents(true);
++                                        // Offsets must be applied here as the next phase wont reapply or recalculate for offsets
++                                        local.origin = dte.Transform?.Offsets != null ? local.origin + dte.Transform.Offsets : local.origin;
+                                     }
++
++                                    entity.SetFrame(ref local);
++                                    entity.SetVisibilityExcludeParents(!dte.IsDeleted);
+                                 }
+                             }
+ 
