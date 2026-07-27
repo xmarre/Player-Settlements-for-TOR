@@ -43,6 +43,18 @@ jobs:
             [IO.File]::WriteAllText("ci-error.txt", $details, [Text.UTF8Encoding]::new($false))
             throw
           }
+      - name: Upload generated maintained sources
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-maintained-sources-${{ github.sha }}
+          path: |
+            .work/source/BannerlordPlayerSettlement/BannerlordPlayerSettlement.csproj
+            .work/source/BannerlordPlayerSettlement/Main.cs
+            .work/source/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+            .work/source/BannerlordPlayerSettlement/SaveHandler.cs
+            .work/source/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs
+          if-no-files-found: error
       - name: Upload failure diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
