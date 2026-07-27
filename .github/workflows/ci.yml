@@ -34,10 +34,12 @@ jobs:
         run: |
           $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
           $source = '.diagnostic/source'
+          $basePatch = (Resolve-Path 'patches/0001-tor-7.6.11-base.patch').Path
+          $reviewPatch = (Resolve-Path 'patches/0002-review-fixes.patch').Path
           if (Test-Path '.diagnostic') { Remove-Item '.diagnostic' -Recurse -Force }
           git clone --no-checkout .cache/upstream $source | Out-Null
           git -C $source checkout --detach $commit | Out-Null
-          git -C $source apply --whitespace=nowarn patches/0001-tor-7.6.11-base.patch
+          git -C $source apply --whitespace=nowarn $basePatch
 
           $overlayRoot = (Resolve-Path 'overlays/BannerlordPlayerSettlement').Path
           $projectRoot = (Resolve-Path "$source/BannerlordPlayerSettlement").Path
@@ -53,7 +55,7 @@ jobs:
           $arguments = @(
             '-C', $source,
             'apply', '--check', '--verbose', '--whitespace=nowarn',
-            'patches/0002-review-fixes.patch'
+            $reviewPatch
           )
           $process = Start-Process -FilePath 'git' -ArgumentList $arguments -Wait -PassThru -NoNewWindow `
             -RedirectStandardOutput $stdout -RedirectStandardError $stderr
