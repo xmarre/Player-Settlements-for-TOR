@@ -15,6 +15,21 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+      - name: Print staged source hashes
+        shell: pwsh
+        run: |
+          @(
+            'patches/0001-tor-7.6.11-base.patch',
+            'patches/0002-review-fixes.patch',
+            'overlays/BannerlordPlayerSettlement/BannerlordPlayerSettlement.csproj',
+            'overlays/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs',
+            'overlays/BannerlordPlayerSettlement/SaveHandler.cs',
+            'overlays/BannerlordPlayerSettlement/Patches/MapScreenPatch.cs',
+            'overlays/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs'
+          ) | ForEach-Object {
+            $hash = (Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant()
+            Write-Host "$hash  $_"
+          }
       - name: Read pinned upstream commit
         id: upstream
         shell: pwsh
