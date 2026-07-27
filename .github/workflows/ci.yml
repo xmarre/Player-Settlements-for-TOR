@@ -29,7 +29,7 @@ jobs:
           path: .cache/upstream
           fetch-depth: 1
           persist-credentials: false
-      - name: Capture review-patch check output
+      - name: Regenerate applicable review patch
         shell: pwsh
         run: |
           $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
@@ -50,11 +50,16 @@ jobs:
             Copy-Item $_.FullName $target -Force
           }
 
+          git -C $source config user.name 'CI Patch Regenerator'
+          git -C $source config user.email 'ci@example.invalid'
+          git -C $source add -A
+          git -C $source commit -m 'overlay baseline' | Out-Null
+
           $stdout = 'review-patch-stdout.txt'
           $stderr = 'review-patch-stderr.txt'
           $arguments = @(
             '-C', $source,
-            'apply', '--check', '--verbose', '--whitespace=nowarn',
+            'apply', '--reject', '--verbose', '--whitespace=nowarn',
             $reviewPatch
           )
           $process = Start-Process -FilePath 'git' -ArgumentList $arguments -Wait -PassThru -NoNewWindow `
@@ -63,12 +68,19 @@ jobs:
           if (Test-Path $stdout) { $lines += Get-Content $stdout }
           if (Test-Path $stderr) { $lines += Get-Content $stderr }
           $lines | Set-Content review-patch-check.txt -Encoding utf8NoBOM
-          $lines | ForEach-Object { Write-Host $_ }
-      - name: Upload review-patch diagnostics
+
+          Get-ChildItem $source -Recurse -Filter *.rej | Remove-Item -Force
+          git -C $source diff --no-ext-diff --binary | Set-Content regenerated-review-fixes.patch -Encoding utf8NoBOM
+          if (-not (Test-Path regenerated-review-fixes.patch) -or (Get-Item regenerated-review-fixes.patch).Length -eq 0) {
+            throw 'Regenerated review patch is empty.'
+          }
+      - name: Upload regenerated review patch
         uses: actions/upload-artifact@v4
         with:
-          name: review-patch-check-${{ github.sha }}
-          path: review-patch-check.txt
+          name: regenerated-review-patch-${{ github.sha }}
+          path: |
+            review-patch-check.txt
+            regenerated-review-fixes.patch
           if-no-files-found: error
       - uses: actions/setup-dotnet@v4
         with:
