@@ -48,8 +48,15 @@ jobs:
             Copy-Item $_.FullName $target -Force
           }
 
-          $output = & git -C $source apply --check --verbose --whitespace=nowarn patches/0002-review-fixes.patch 2>&1
-          $exitCode = $LASTEXITCODE
+          $previousNativePreference = $PSNativeCommandUseErrorActionPreference
+          try {
+            $PSNativeCommandUseErrorActionPreference = $false
+            $output = & git -C $source apply --check --verbose --whitespace=nowarn patches/0002-review-fixes.patch 2>&1
+            $exitCode = $LASTEXITCODE
+          }
+          finally {
+            $PSNativeCommandUseErrorActionPreference = $previousNativePreference
+          }
           @("exit_code=$exitCode") + $output | Set-Content review-patch-check.txt -Encoding utf8NoBOM
           $output | ForEach-Object { Write-Host $_ }
       - name: Upload review-patch diagnostics
