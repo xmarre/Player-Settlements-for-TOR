@@ -1,5 +1,0 @@
-Symptom: placement help appeared without a town/castle ghost.
-Trigger: a selected template's prefab ID returned null from AddPrefabEntityToMapScene.
-Root cause: the Eonir compatibility template referenced an entity name from the removed legacy Prefabs XML collection.
-Violated invariant: placement UI may begin only when a visible settlement GameEntity exists.
-Patch: use safe already-loaded TOR prefabs for Eonir, retry one alternative on null, and suppress placement help when no entity exists.

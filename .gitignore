@@ -1,0 +1,10 @@
+.cache/
+.work/
+dist/
+**/bin/
+**/obj/
+*.user
+*.suo
+*.log
+.vs/
+.idea/

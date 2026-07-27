@@ -22,7 +22,7 @@
     <DependedModule Id="TOR_Armory" />
     <DependedModule Id="TOR_Environment" />
     <DependedModule Id="TOR_Core" />
-    <DependedModule Id="PlayerSettlement" DependentVersion="v7.6.11" />
+    <DependedModule Id="PlayerSettlement" DependentVersion="v7.6.12" />
   </DependedModules>
   <DependedModuleMetadatas>
     <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" version="v2.4.2" />
@@ -36,7 +36,7 @@
     <DependedModuleMetadata id="TOR_Armory" order="LoadBeforeThis" version="v1.16.0" />
     <DependedModuleMetadata id="TOR_Environment" order="LoadBeforeThis" version="v1.16.0" />
     <DependedModuleMetadata id="TOR_Core" order="LoadBeforeThis" version="v1.16.0" />
-    <DependedModuleMetadata id="PlayerSettlement" order="LoadBeforeThis" version="v7.6.11" />
+    <DependedModuleMetadata id="PlayerSettlement" order="LoadBeforeThis" version="v7.6.12" />
   </DependedModuleMetadatas>
   <SubModules>
     <SubModule>

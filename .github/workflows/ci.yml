@@ -1,0 +1,32 @@
+name: Build and validate
+
+on:
+  push:
+    branches: [main, 'agent/**']
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          repository: BOTLANNER/BannerlordPlayerSettlement
+          ref: 52d86c7480778afb83e476ac742895f73fbf6d7f
+          path: .cache/upstream
+          fetch-depth: 1
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Build, validate, and package
+        shell: pwsh
+        run: ./scripts/build.ps1 -UpstreamPath .cache/upstream
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Player-Settlements-${{ github.sha }}
+          path: dist/*
+          if-no-files-found: error
