@@ -1,0 +1,119 @@
+diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+index e5d97ab..0db7058 100644
+--- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
++++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+@@ -4815,114 +4784,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+             }
+         }
+ 
+-        private void ShowGhostPortVisualEntity(bool retry = false)
+-        {
+-            try
+-            {
+-                LogManager.EventTracer.Trace($"ShowGhostPortVisualEntity noRetry={retry}");
+-
+-                //ClearEntities();
+-                portPlacementFrame = null;
+-
+-                Debug.Print($"Requesting swap model for port ghost build to: {GhostPortEntityId}", 2, Debug.DebugColor.Purple);
+-                LogManager.EventTracer.Trace($"Requesting swap model for port ghost build to: {GhostPortEntityId}");
+-
+-                var mapScene = ((MapScene) Campaign.Current.MapSceneWrapper).Scene;
+-                Vec2 position2D = MobileParty.MainParty.GetPosition2D;
+-
+-                string prefabId = GhostPortPrefabId;
+-                string entityId = GhostPortEntityId;
+-                ghostPortVisualEntity = Campaign.Current.MapSceneWrapper.AddPrefabEntityToMapScene(ref mapScene, ref entityId, ref position2D, ref prefabId);
+-                var ghostEntity2 = mapScene.GetCampaignEntityWithName(GhostPortEntityId);
+-                if (ghostPortVisualEntity != ghostEntity2)
+-                {
+-                    LogManager.EventTracer.Trace($"settlementVisualEntity != settlementVisualEntity2 - Prefab: '{prefabId}', Entity: '{entityId}'");
+-                }
+-                ghostPortVisualEntity?.AddBodyFlags(BodyFlags.DoNotCollideWithRaycast | BodyFlags.DontCollideWithCamera | BodyFlags.DontTransferToPhysicsEngine | BodyFlags.CommonCollisionExcludeFlagsForEditor | BodyFlags.CommonCollisionExcludeFlags | BodyFlags.CommonFocusRayCastExcludeFlags | BodyFlags.CommonFlagsThatDoNotBlockRay);
+-                previousVisualUpdateException = null;
+-
+-                if (ghostPortVisualEntity == null)
+-                {
+-                    // The visual marker is optional. Keep the explicit port phase active so the
+-                    // mouse position is still tracked and the user can place the port safely.
+-                    LogManager.EventTracer.Trace("Port marker prefab unavailable; continuing with cursor-only placement");
+-                }
+-            }
+-            catch (Exception e)
+-            {
+-                bool rethrow = previousVisualUpdateException != null;
+-                if (!rethrow)
+-                {
+-                    previousVisualUpdateException = e;
+-                }
+-                LogManager.Log.NotifyBad(e);
+-                if (retry)
+-                {
+-                    // Retry once without allowing another retry to avoid stackoverflow loops
+-                    ShowGhostPortVisualEntity(retry: false);
+-                }
+-                else if (rethrow)
+-                {
+-                    throw;
+-                }
+-            }
+-        }
+-
+-        private void ShowGhostGateVisualEntity(bool retry = false)
+-        {
+-            try
+-            {
+-                LogManager.EventTracer.Trace($"ShowGhostGateVisualEntity noRetry={retry}");
+-
+-                //ClearEntities();
+-                gatePlacementFrame = null;
+-
+-                Debug.Print($"Requesting swap model for gate ghost build to: {GhostGateEntityId}", 2, Debug.DebugColor.Purple);
+-                LogManager.EventTracer.Trace($"Requesting swap model for gate ghost build to: {GhostGateEntityId}");
+-
+-                var mapScene = ((MapScene) Campaign.Current.MapSceneWrapper).Scene;
+-                Vec2 position2D = settlementPlacementFrame.HasValue
+-                    ? settlementPlacementFrame.Value.origin.AsVec2
+-                    : MobileParty.MainParty.GetPosition2D;
+-
+-                string prefabId = GhostGatePrefabId;
+-                string entityId = GhostGateEntityId;
+-                ghostGateVisualEntity = Campaign.Current.MapSceneWrapper.AddPrefabEntityToMapScene(ref mapScene, ref entityId, ref position2D, ref prefabId);
+-                var ghostEntity2 = mapScene.GetCampaignEntityWithName(GhostGateEntityId);
+-                if (ghostGateVisualEntity != ghostEntity2)
+-                {
+-                    LogManager.EventTracer.Trace($"settlementVisualEntity != settlementVisualEntity2 - Prefab: '{prefabId}', Entity: '{entityId}'");
+-                }
+-                ghostGateVisualEntity?.AddBodyFlags(BodyFlags.DoNotCollideWithRaycast | BodyFlags.DontCollideWithCamera | BodyFlags.DontTransferToPhysicsEngine | BodyFlags.CommonCollisionExcludeFlagsForEditor | BodyFlags.CommonCollisionExcludeFlags | BodyFlags.CommonFocusRayCastExcludeFlags | BodyFlags.CommonFlagsThatDoNotBlockRay);
+-                previousVisualUpdateException = null;
+-
+-                if (ghostGateVisualEntity == null)
+-                {
+-                    // The visual marker is optional. Keep the explicit gate phase active so the
+-                    // mouse position is still tracked and the user can place the gate safely.
+-                    LogManager.EventTracer.Trace("Gate marker prefab unavailable; continuing with cursor-only placement");
+-                }
+-            }
+-            catch (Exception e)
+-            {
+-                bool rethrow = previousVisualUpdateException != null;
+-                if (!rethrow)
+-                {
+-                    previousVisualUpdateException = e;
+-                }
+-                LogManager.Log.NotifyBad(e);
+-                if (retry)
+-                {
+-                    // Retry once without allowing another retry to avoid stackoverflow loops
+-                    ShowGhostGateVisualEntity(retry: false);
+-                }
+-                else if (rethrow)
+-                {
+-                    throw;
+-                }
+-            }
+-        }
+-
+         private List<InquiryElement> GetVillageTypeInquiry()
+         {
+             List<InquiryElement> inquiryElements = new();
