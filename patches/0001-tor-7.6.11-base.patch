@@ -1,0 +1,258 @@
+diff --git a/BannerlordPlayerSettlement/Descriptors/PlayerSettlementItemTemplate.cs b/BannerlordPlayerSettlement/Descriptors/PlayerSettlementItemTemplate.cs
+index 8da0693..5fe4214 100644
+--- a/BannerlordPlayerSettlement/Descriptors/PlayerSettlementItemTemplate.cs
++++ b/BannerlordPlayerSettlement/Descriptors/PlayerSettlementItemTemplate.cs
+@@ -1,4 +1,4 @@
+-﻿using System.Xml;
++using System.Xml;
+ 
+ namespace BannerlordPlayerSettlement.Descriptors
+ {
+@@ -8,6 +8,8 @@ namespace BannerlordPlayerSettlement.Descriptors
+ 
+         public string Id;
+ 
++        public string PrefabId;
++
+         public string Culture;
+ 
+         public int Type = 0;
+diff --git a/BannerlordPlayerSettlement/Main.cs b/BannerlordPlayerSettlement/Main.cs
+index 9f82327..5110953 100644
+--- a/BannerlordPlayerSettlement/Main.cs
++++ b/BannerlordPlayerSettlement/Main.cs
+@@ -1,4 +1,4 @@
+-﻿using System;
++using System;
+ using System.Collections.Generic;
+ using System.ComponentModel;
+ using System.Diagnostics;
+@@ -74,7 +74,9 @@ namespace BannerlordPlayerSettlement
+ 
+         public static Main? Submodule = null;
+ 
+-        private static List<ICompatibilityPatch> HarmonyCompatPatches = LoadCompatPatches().ToList();
++        private static readonly List<ICompatibilityPatch> HarmonyCompatPatches = new();
++        private bool _runtimeInitialized;
++        private bool _afterMenuPatchesApplied;
+ 
+         public Dictionary<string, List<CultureSettlementTemplate>> CultureTemplates;
+ 
+@@ -148,6 +150,7 @@ namespace BannerlordPlayerSettlement
+         {
+             //Ctor
+             Submodule = this;
++            WriteStartupDiagnostic("Main constructor");
+ 
+             //Debugger.Launch();
+         }
+@@ -156,34 +159,22 @@ namespace BannerlordPlayerSettlement
+         {
+             try
+             {
++                WriteStartupDiagnostic("OnSubModuleLoad: enter");
+                 base.OnSubModuleLoad();
+-                LogManager.EnableTracer = true; // enable code event tracing
+-
+-                Harmony = new Harmony(HarmonyDomain);
+-                Harmony.PatchAll();
+-
+-                foreach (var patch in HarmonyCompatPatches)
+-                {
+-                    patch.PatchSubmoduleLoad(Harmony);
+-                }
+-
+-                _extender = UIExtender.Create(ModuleName); //HarmonyDomain);
+-                _extender.Register(typeof(Main).Assembly);
+-                _extender.Enable();
+-
+-                LogManager.EventTracer.Trace();
++                WriteStartupDiagnostic("OnSubModuleLoad: complete");
+             }
+             catch (System.Exception e)
+             {
+-                if (Debugger.IsAttached)
+-                {
+-                    Debugger.Break();
+-                }
+-                LogManager.Log.NotifyBad(e);
++                WriteStartupDiagnostic("OnSubModuleLoad: " + e);
+             }
+         }
+ 
+         protected override void OnBeforeInitialModuleScreenSetAsRoot()
++        {
++            WriteStartupDiagnostic("OnBeforeInitialModuleScreenSetAsRoot");
++        }
++
++        private void InitializeMenuDependentState()
+         {
+             try
+             {
+@@ -202,11 +193,6 @@ namespace BannerlordPlayerSettlement
+                     LogManager.Log.Print($"Loaded {DisplayName}", Colours.ImportantTextColor);
+                     _loaded = true;
+ 
+-                    foreach (var patch in HarmonyCompatPatches)
+-                    {
+-                        patch.PatchAfterMenus(Harmony!);
+-                    }
+-
+                     CultureTemplates = GatherTemplates();
+ 
+                     var categoryName = TaleWorlds.MountAndBlade.Module.CurrentModule.GlobalTextManager.GetGameText("str_key_category_name");
+@@ -609,19 +595,109 @@ namespace BannerlordPlayerSettlement
+             return (new List<ModuleInfo>() { thisModule }).Union(ModuleHelper.GetModules().Where(mi => mi != thisModule && mi.Id != thisModule.Id && mi.DependedModules.FindIndex(dp => dp.ModuleId == thisModule.Id) != -1));
+         }
+ 
++        protected override void OnApplicationTick(float dt)
++        {
++            base.OnApplicationTick(dt);
++            SaveHandler.Instance.OnApplicationTick(dt);
++        }
++
+         protected override void OnGameStart(Game game, IGameStarter starterObject)
+         {
+             try
+             {
++                WriteStartupDiagnostic("OnGameStart: enter");
+                 base.OnGameStart(game, starterObject);
+-
+                 if (game.GameType is Campaign)
+                 {
+-                    var initializer = (CampaignGameStarter) starterObject;
+-                    AddBehaviors(initializer);
++                    InitializeMenuDependentState();
++                    InitializeRuntimePatches();
++                    AddBehaviors((CampaignGameStarter)starterObject);
+                 }
++                WriteStartupDiagnostic("OnGameStart: complete");
++            }
++            catch (System.Exception e)
++            {
++                WriteStartupDiagnostic("OnGameStart: " + e);
++                try { LogManager.Log.NotifyBad(e); } catch { }
+             }
+-            catch (System.Exception e) { LogManager.Log.NotifyBad(e); }
++        }
++
++        private void InitializeRuntimePatches()
++        {
++            if (_runtimeInitialized) return;
++            _runtimeInitialized = true;
++            WriteStartupDiagnostic("Runtime initialization: begin");
++            Harmony = new Harmony(HarmonyDomain);
++            Type[] ownTypes;
++            try { ownTypes = typeof(Main).Assembly.GetTypes(); }
++            catch (ReflectionTypeLoadException e)
++            {
++                ownTypes = e.Types.Where(t => t != null).Cast<Type>().ToArray();
++                WriteStartupDiagnostic("Own assembly partial type load: " + e);
++            }
++            foreach (var type in ownTypes)
++            {
++                if (type.GetCustomAttributes(typeof(HarmonyPatch), true).Length == 0) continue;
++                try
++                {
++                    WriteStartupDiagnostic("Harmony patch begin: " + type.FullName);
++                    Harmony.CreateClassProcessor(type).Patch();
++                    WriteStartupDiagnostic("Harmony patch complete: " + type.FullName);
++                }
++                catch (System.Exception e)
++                {
++                    WriteStartupDiagnostic("Harmony patch failed: " + type.FullName + " | " + e);
++                    try { LogManager.Log.NotifyBad(e); } catch { }
++                }
++            }
++            HarmonyCompatPatches.Clear();
++            try { HarmonyCompatPatches.AddRange(LoadCompatPatches()); }
++            catch (System.Exception e) { WriteStartupDiagnostic("Compatibility discovery failed: " + e); }
++            foreach (var patch in HarmonyCompatPatches)
++            {
++                try { patch.PatchSubmoduleLoad(Harmony); }
++                catch (System.Exception e)
++                {
++                    WriteStartupDiagnostic("Compatibility patch failed: " + patch.GetType().FullName + " | " + e);
++                    try { LogManager.Log.NotifyBad(e); } catch { }
++                }
++            }
++            try
++            {
++                _extender = UIExtender.Create(ModuleName);
++                _extender.Register(typeof(Main).Assembly);
++                _extender.Enable();
++            }
++            catch (System.Exception e)
++            {
++                WriteStartupDiagnostic("UIExtender initialization failed: " + e);
++                try { LogManager.Log.NotifyBad(e); } catch { }
++            }
++            if (!_afterMenuPatchesApplied)
++            {
++                _afterMenuPatchesApplied = true;
++                foreach (var patch in HarmonyCompatPatches)
++                {
++                    try { patch.PatchAfterMenus(Harmony); }
++                    catch (System.Exception e)
++                    {
++                        WriteStartupDiagnostic("Compatibility after-menu patch failed: " + patch.GetType().FullName + " | " + e);
++                    }
++                }
++            }
++            WriteStartupDiagnostic("Runtime initialization: complete");
++        }
++
++        private static void WriteStartupDiagnostic(string message)
++        {
++            try
++            {
++                string userDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "Mount and Blade II Bannerlord");
++                string dir = Path.Combine(userDir, "Configs", Name);
++                Directory.CreateDirectory(dir);
++                File.AppendAllText(Path.Combine(dir, "startup.log"), DateTime.UtcNow.ToString("O") + " | " + message + Environment.NewLine);
++            }
++            catch { }
+         }
+ 
+         public override void RegisterSubModuleObjects(bool isSavedCampaign)
+@@ -984,29 +1060,19 @@ namespace BannerlordPlayerSettlement
+ 
+         static IEnumerable<ICompatibilityPatch> LoadCompatPatches()
+         {
+-            Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+-            foreach (var assembly in assemblies)
++            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+             {
+-                foreach (var type in assembly.GetTypes())
++                Type[] types;
++                try { types = assembly.GetTypes(); }
++                catch (ReflectionTypeLoadException e) { types = e.Types.Where(t => t != null).Cast<Type>().ToArray(); }
++                catch { continue; }
++                foreach (var type in types)
+                 {
+-                    if (typeof(ICompatibilityPatch).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
+-                    {
+-                        object? inst = null;
+-                        try
+-                        {
+-                            inst = type.CreateInstance();
+-                        }
+-                        catch (Exception e)
+-                        {
+-                            LogManager.Log.NotifyBad(e);
+-                        }
+-
+-                        if (inst is ICompatibilityPatch compatibilityPatch)
+-                        {
+-                            yield return compatibilityPatch;
+-                        }
+-
+-                    }
++                    if (!typeof(ICompatibilityPatch).IsAssignableFrom(type) || type.IsInterface || type.IsAbstract) continue;
++                    object? instance = null;
++                    try { instance = type.CreateInstance(); }
++                    catch (Exception e) { WriteStartupDiagnostic("Compatibility type creation failed: " + type.FullName + " | " + e); }
++                    if (instance is ICompatibilityPatch patch) yield return patch;
+                 }
+             }
+         }
