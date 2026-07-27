@@ -200,3 +200,14 @@ index 3415412..df0aaae 100644
              _afterSave = null;
              _requestedSaveName = null;
              _requestedMechanism = SaveMechanism.Overwrite;
+diff --git a/BannerlordPlayerSettlement/Main.cs b/BannerlordPlayerSettlement/Main.cs
+--- a/BannerlordPlayerSettlement/Main.cs
++++ b/BannerlordPlayerSettlement/Main.cs
+@@ -619,6 +619,7 @@ namespace BannerlordPlayerSettlement
+         {
+             if (_runtimeInitialized) return;
+             _runtimeInitialized = true;
++            LogManager.EnableTracer = true;
+             WriteStartupDiagnostic("Runtime initialization: begin");
+             Harmony = new Harmony(HarmonyDomain);
+             Type[] ownTypes;
