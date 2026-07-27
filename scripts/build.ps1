@@ -60,7 +60,7 @@ $mainProject = Join-Path $projectRoot "BannerlordPlayerSettlement.csproj"
 $raidProject = Join-Path $root "src/PlayerSettlementVillageRaidFix/PlayerSettlementVillageRaidFix.csproj"
 $torProject = Join-Path $root "src/PlayerSettlementTORRuntime/PlayerSettlementTORRuntime.csproj"
 dotnet restore $mainProject
-dotnet build $mainProject -c Beta_Release --no-restore
+dotnet build $mainProject -c Beta_Release -p:Platform=x64 --no-restore
 dotnet restore $raidProject
 dotnet build $raidProject -c Release --no-restore
 dotnet restore $torProject
