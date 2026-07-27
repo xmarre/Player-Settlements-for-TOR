@@ -1,15 +1,17 @@
 diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
-index 357b8c2f8bef73b17ef6ae1afa9e9a1c2f834d42..3ef046e1413433284c145a73747d48f61c628a4a 100644
+index 357b8c2..dcdbd2e 100644
 --- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
 +++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
-@@ -168,10 +168,6 @@ namespace BannerlordPlayerSettlement.Behaviours
+@@ -168,10 +168,10 @@ namespace BannerlordPlayerSettlement.Behaviours
          #endregion
  
          #region Gate and Port Placement
--        const string GhostGateEntityId = "player_settlement_ghost_gate";
+         const string GhostGateEntityId = "player_settlement_ghost_gate";
 -        const string GhostGatePrefabId = "map_icon_full_vlandia_village";
--        const string GhostPortEntityId = GhostGateEntityId;
++        const string GhostGatePrefabId = GhostGateEntityId;
+         const string GhostPortEntityId = GhostGateEntityId;
 -        const string GhostPortPrefabId = GhostGatePrefabId;
++        const string GhostPortPrefabId = GhostPortEntityId;
          private GameEntity? ghostGateVisualEntity = null;
          private MatrixFrame? gatePlacementFrame = null;
  
@@ -94,28 +96,7 @@ index 357b8c2f8bef73b17ef6ae1afa9e9a1c2f834d42..3ef046e1413433284c145a73747d48f6
                          return;
                      }
                      catch (Exception e)
-@@ -2061,20 +1992,6 @@ namespace BannerlordPlayerSettlement.Behaviours
-                 }), true, false);
-             }
- 
--            //if (applyPending != null && mapScreen.SceneLayer.Input.GetIsMouseActive() && PlacementSupported)
--            //{
--            //    try
--             //    {
--            //        PlacementSupported = false;
--            //        ShowPortPosHelp();
--            //        ShowGhostPortVisualEntity(true);
--            //        return;
--            //    }
--            //    catch (Exception e)
--            //    {
--            //        LogManager.Log.NotifyBad(e);
--            //    }
--            //}
-         }
- 
-         public void StartGatePlacement()
-@@ -2104,8 +2021,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+@@ -2104,8 +2035,7 @@ namespace BannerlordPlayerSettlement.Behaviours
                      gatePlacementActive = true;
                      portPlacementActive = false;
                      ShowGatePosHelp(forceShow: true);
@@ -123,9 +104,9 @@ index 357b8c2f8bef73b17ef6ae1afa9e9a1c2f834d42..3ef046e1413433284c145a73747d48f6
 -                    WriteGateDiagnostic("Gate phase started immediately; marker prefab loading intentionally skipped.");
 +                    WriteGateDiagnostic("Gate phase started immediately; using cursor-only placement without a culture-specific marker prefab.");
                      return;
-                }
-                catch (Exception e)
-@@ -2134,7 +2050,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+                 }
+                 catch (Exception e)
+@@ -2134,7 +2065,7 @@ namespace BannerlordPlayerSettlement.Behaviours
              {
                  return;
              }
@@ -134,123 +115,8 @@ index 357b8c2f8bef73b17ef6ae1afa9e9a1c2f834d42..3ef046e1413433284c145a73747d48f6
              gatePosMessage.SetTextVariable("HELP_KEY", TaleWorlds.Core.HyperlinkTexts.GetKeyHyperlinkText(Main.Submodule!.HelpKey.GetInputKey().ToString()));
              gatePosMessage.SetTextVariable("ESC_KEY", TaleWorlds.Core.HyperlinkTexts.GetKeyHyperlinkText(InputKey.Escape.ToString()));
              gatePosMessage.SetTextVariable("MOUSE_CLICK", HyperlinkTexts.GetKeyHyperlinkText(InputKey.LeftMouseButton.ToString()));
-@@ -4881,114 +4797,6 @@ namespace BannerlordPlayerSettlement.Behaviours
-             }
-         }
- 
--        private void ShowGhostPortVisualEntity(bool retry = false)
--        {
--            try
--             {
--                LogManager.EventTracer.Trace($"ShowGhostPortVisualEntity noRetry={retry}");
--
--                //ClearEntities();
--                portPlacementFrame = null;
--
--                Debug.Print($"Requesting swap model for port ghost build to: {GhostPortEntityId}", 2, Debug.DebugColor.Purple);
--                LogManager.EventTracer.Trace($"Requesting swap model for port ghost build to: {GhostPortEntityId}");
--
--                var mapScene = ((MapScene) Campaign.Current.MapSceneWrapper).Scene;
--                Vec2 position2D = MobileParty.MainParty.GetPosition2D;
--
--                string prefabId = GhostPortPrefabId;
--                string entityId = GhostPortEntityId;
--                ghostPortVisualEntity = Campaign.Current.MapSceneWrapper.AddPrefabEntityToMapScene(ref mapScene, ref entityId, ref position2D, ref prefabId);
--                var ghostEntity2 = mapScene.GetCampaignEntityWithName(GhostPortEntityId);
--                if (ghostPortVisualEntity != ghostEntity2)
--                {
--                    LogManager.EventTracer.Trace($"settlementVisualEntity != settlementVisualEntity2 - Prefab: '{prefabId}', Entity: '{entityId}'");
--                }
--                ghostPortVisualEntity?.AddBodyFlags(BodyFlags.DoNotCollideWithRaycast | BodyFlags.DontCollideWithCamera | BodyFlags.DontTransferToPhysicsEngine | BodyFlags.CommonCollisionExcludeFlagsForEditor | BodyFlags.CommonCollisionExcludeFlags | BodyFlags.CommonFocusRayCastExcludeFlags | BodyFlags.CommonFlagsThatDoNotBlockRay);
--                previousVisualUpdateException = null;
--
--                if (ghostPortVisualEntity == null)
--                {
--                    // The visual marker is optional. Keep the explicit port phase active so the
--                    // mouse position is still tracked and the user can place the port safely.
--                    LogManager.EventTracer.Trace("Port marker prefab unavailable; continuing with cursor-only placement");
--                }
--            }
--            catch (Exception e)
--            {
--                bool rethrow = previousVisualUpdateException != null;
--                if (!rethrow)
--                {
--                    previousVisualUpdateException = e;
--                }
--                LogManager.Log.NotifyBad(e);
--                if (retry)
--                {
--                    // Retry once without allowing another retry to avoid stackoverflow loops
--                    ShowGhostPortVisualEntity(retry: false);
--                }
--                else if (rethrow)
--                {
--                    throw;
--                }
--            }
--        }
--
--        private void ShowGhostGateVisualEntity(bool retry = false)
--        {
--            try
--             {
--                LogManager.EventTracer.Trace($"ShowGhostGateVisualEntity noRetry={retry}");
--
--                //ClearEntities();
--                gatePlacementFrame = null;
--
--                Debug.Print($"Requesting swap model for gate ghost build to: {GhostGateEntityId}", 2, Debug.DebugColor.Purple);
--                LogManager.EventTracer.Trace($"Requesting swap model for gate ghost build to: {GhostGateEntityId}");
--
--                var mapScene = ((MapScene) Campaign.Current.MapSceneWrapper).Scene;
--                Vec2 position2D = settlementPlacementFrame.HasValue
--                    ? settlementPlacementFrame.Value.origin.AsVec2
--                    : MobileParty.MainParty.GetPosition2D;
--
--                string prefabId = GhostGatePrefabId;
--                string entityId = GhostGateEntityId;
--                ghostGateVisualEntity = Campaign.Current.MapSceneWrapper.AddPrefabEntityToMapScene(ref mapScene, ref entityId, ref position2D, ref prefabId);
--                var ghostEntity2 = mapScene.GetCampaignEntityWithName(GhostGateEntityId);
--                if (ghostGateVisualEntity != ghostEntity2)
--                {
--                    LogManager.EventTracer.Trace($"settlementVisualEntity != settlementVisualEntity2 - Prefab: '{prefabId}', Entity: '{entityId}'");
--                }
--                ghostGateVisualEntity?.AddBodyFlags(BodyFlags.DoNotCollideWithRaycast | BodyFlags.DontCollideWithCamera | BodyFlags.DontTransferToPhysicsEngine | BodyFlags.CommonCollisionExcludeFlagsForEditor | BodyFlags.CommonCollisionExcludeFlags | BodyFlags.CommonFocusRayCastExcludeFlags | BodyFlags.CommonFlagsThatDoNotBlockRay);
--                previousVisualUpdateException = null;
--
--                if (ghostGateVisualEntity == null)
--                {
--                    // The visual marker is optional. Keep the explicit gate phase active so the
--                    // mouse position is still tracked and the user can place the gate safely.
--                    LogManager.EventTracer.Trace("Gate marker prefab unavailable; continuing with cursor-only placement");
--                }
--            }
--            catch (Exception e)
--            {
--                bool rethrow = previousVisualUpdateException != null;
--                if (!rethrow)
--                {
--                    previousVisualUpdateException = e;
--                }
--                LogManager.Log.NotifyBad(e);
--                if (retry)
--                {
--                    // Retry once without allowing another retry to avoid stackoverflow loops
--                    ShowGhostGateVisualEntity(retry: false);
--                }
--                else if (rethrow)
--                {
--                    throw;
--                }
--            }
--        }
--
-         private List<InquiryElement> GetVillageTypeInquiry()
-         {
-             List<InquiryElement> inquiryElements = new();
 diff --git a/BannerlordPlayerSettlement/SaveHandler.cs b/BannerlordPlayerSettlement/SaveHandler.cs
-index 3415412f822173c9de55826f77ce1494edfb2c1a..df0aaaea9fa7b45fa5f16e3ceaa99b8523be2114 100644
+index 3415412..df0aaae 100644
 --- a/BannerlordPlayerSettlement/SaveHandler.cs
 +++ b/BannerlordPlayerSettlement/SaveHandler.cs
 @@ -1,4 +1,5 @@

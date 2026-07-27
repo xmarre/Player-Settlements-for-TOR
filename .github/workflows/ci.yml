@@ -29,59 +29,6 @@ jobs:
           path: .cache/upstream
           fetch-depth: 1
           persist-credentials: false
-      - name: Regenerate applicable review patch
-        shell: pwsh
-        run: |
-          $commit = (Get-Content UPSTREAM_COMMIT -Raw).Trim()
-          $source = '.diagnostic/source'
-          $basePatch = (Resolve-Path 'patches/0001-tor-7.6.11-base.patch').Path
-          $reviewPatch = (Resolve-Path 'patches/0002-review-fixes.patch').Path
-          if (Test-Path '.diagnostic') { Remove-Item '.diagnostic' -Recurse -Force }
-          git clone --no-checkout .cache/upstream $source | Out-Null
-          git -C $source checkout --detach $commit | Out-Null
-          git -C $source apply --whitespace=nowarn $basePatch
-
-          $overlayRoot = (Resolve-Path 'overlays/BannerlordPlayerSettlement').Path
-          $projectRoot = (Resolve-Path "$source/BannerlordPlayerSettlement").Path
-          Get-ChildItem $overlayRoot -Recurse -File | ForEach-Object {
-            $relative = $_.FullName.Substring($overlayRoot.Length).TrimStart('\', '/')
-            $target = Join-Path $projectRoot $relative
-            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
-            Copy-Item $_.FullName $target -Force
-          }
-
-          git -C $source config user.name 'CI Patch Regenerator'
-          git -C $source config user.email 'ci@example.invalid'
-          git -C $source add -A
-          git -C $source commit -m 'overlay baseline' | Out-Null
-
-          $stdout = 'review-patch-stdout.txt'
-          $stderr = 'review-patch-stderr.txt'
-          $arguments = @(
-            '-C', $source,
-            'apply', '--reject', '--verbose', '--whitespace=nowarn',
-            $reviewPatch
-          )
-          $process = Start-Process -FilePath 'git' -ArgumentList $arguments -Wait -PassThru -NoNewWindow `
-            -RedirectStandardOutput $stdout -RedirectStandardError $stderr
-          $lines = @("exit_code=$($process.ExitCode)")
-          if (Test-Path $stdout) { $lines += Get-Content $stdout }
-          if (Test-Path $stderr) { $lines += Get-Content $stderr }
-          $lines | Set-Content review-patch-check.txt -Encoding utf8NoBOM
-
-          Get-ChildItem $source -Recurse -Filter *.rej | Remove-Item -Force
-          git -C $source diff --no-ext-diff --binary | Set-Content regenerated-review-fixes.patch -Encoding utf8NoBOM
-          if (-not (Test-Path regenerated-review-fixes.patch) -or (Get-Item regenerated-review-fixes.patch).Length -eq 0) {
-            throw 'Regenerated review patch is empty.'
-          }
-      - name: Upload regenerated review patch
-        uses: actions/upload-artifact@v4
-        with:
-          name: regenerated-review-patch-${{ github.sha }}
-          path: |
-            review-patch-check.txt
-            regenerated-review-fixes.patch
-          if-no-files-found: error
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
