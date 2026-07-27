@@ -1,0 +1,68 @@
+diff --git a/BannerlordPlayerSettlement/SaveHandler.cs b/BannerlordPlayerSettlement/SaveHandler.cs
+index 59aa75e..6151b68 100644
+--- a/BannerlordPlayerSettlement/SaveHandler.cs
++++ b/BannerlordPlayerSettlement/SaveHandler.cs
+@@ -27,8 +27,8 @@ namespace BannerlordPlayerSettlement
+         private static readonly SaveHandler _instance = new SaveHandler();
+         public static SaveHandler Instance => _instance;
+ 
+-        private static readonly PropertyInfo ActiveSaveSlotNameProp = AccessTools.Property(typeof(MBSaveLoad), "ActiveSaveSlotName");
+-        private static readonly MethodInfo GetNextAvailableSaveNameMethod = AccessTools.Method(typeof(MBSaveLoad), "GetNextAvailableSaveName");
++        private static readonly PropertyInfo? ActiveSaveSlotNameProp = AccessTools.Property(typeof(MBSaveLoad), "ActiveSaveSlotName");
++        private static readonly MethodInfo? GetNextAvailableSaveNameMethod = AccessTools.Method(typeof(MBSaveLoad), "GetNextAvailableSaveName");
+ 
+         private static readonly long SaveTimeoutStopwatchTicks = Stopwatch.Frequency * 300L;
+ 
+@@ -72,15 +72,15 @@ namespace BannerlordPlayerSettlement
+                 WriteTransitionLog("Placement reset before save failed: " + e);
+             }
+ 
+-            string activeName = ActiveSaveSlotNameProp.GetValue(null) as string;
++            string? activeName = ActiveSaveSlotNameProp?.GetValue(null) as string;
+             if (string.IsNullOrWhiteSpace(activeName))
+             {
+-                activeName = GetNextAvailableSaveNameMethod.Invoke(null, Array.Empty<object>()) as string;
++                activeName = GetNextAvailableSaveNameMethod?.Invoke(null, Array.Empty<object>()) as string;
+                 if (string.IsNullOrWhiteSpace(activeName))
+                 {
+                     activeName = "PlayerSettlement";
+                 }
+-                ActiveSaveSlotNameProp.SetValue(null, activeName);
++                ActiveSaveSlotNameProp?.SetValue(null, activeName);
+             }
+ 
+             string targetName;
+@@ -121,15 +121,21 @@ namespace BannerlordPlayerSettlement
+ 
+         public void Save(bool overwrite = true)
+         {
+-            string activeName = ActiveSaveSlotNameProp.GetValue(null) as string;
++            if (Campaign.Current?.SaveHandler == null)
++            {
++                WriteTransitionLog("Save request ignored because Campaign.SaveHandler is unavailable");
++                return;
++            }
++
++            string? activeName = ActiveSaveSlotNameProp?.GetValue(null) as string;
+             if (string.IsNullOrWhiteSpace(activeName))
+             {
+-                activeName = GetNextAvailableSaveNameMethod.Invoke(null, Array.Empty<object>()) as string;
++                activeName = GetNextAvailableSaveNameMethod?.Invoke(null, Array.Empty<object>()) as string;
+                 if (string.IsNullOrWhiteSpace(activeName))
+                 {
+                     activeName = "PlayerSettlement";
+                 }
+-                ActiveSaveSlotNameProp.SetValue(null, activeName);
++                ActiveSaveSlotNameProp?.SetValue(null, activeName);
+             }
+ 
+             string targetName = overwrite
+@@ -159,7 +165,7 @@ namespace BannerlordPlayerSettlement
+ 
+             try
+             {
+-                ActiveSaveSlotNameProp.SetValue(null, string.IsNullOrWhiteSpace(writtenName) ? requestedName : writtenName);
++                ActiveSaveSlotNameProp?.SetValue(null, string.IsNullOrWhiteSpace(writtenName) ? requestedName : writtenName);
+             }
+             catch (Exception e)
+             {

@@ -102,11 +102,15 @@ Get-ChildItem $overlayRoot -Recurse -File | ForEach-Object {
     Copy-Item $_.FullName $target -Force
 }
 
-$reviewPatch = Join-Path $root "patches/0002-review-fixes.patch"
-git -C $source apply --check --whitespace=nowarn $reviewPatch
-Assert-NativeSuccess "git apply --check review patch"
-git -C $source apply --whitespace=nowarn $reviewPatch
-Assert-NativeSuccess "git apply review patch"
+$postOverlayPatches = Get-ChildItem (Join-Path $root "patches") -File -Filter *.patch |
+    Where-Object { $_.Name -ne "0001-tor-7.6.11-base.patch" } |
+    Sort-Object Name
+foreach ($patchFile in $postOverlayPatches) {
+    git -C $source apply --check --whitespace=nowarn $patchFile.FullName
+    Assert-NativeSuccess "git apply --check $($patchFile.Name)"
+    git -C $source apply --whitespace=nowarn $patchFile.FullName
+    Assert-NativeSuccess "git apply $($patchFile.Name)"
+}
 
 $project = Join-Path $projectRoot "BannerlordPlayerSettlement.csproj"
 $text = Get-Content $project -Raw

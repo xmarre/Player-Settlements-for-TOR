@@ -1,0 +1,13 @@
+diff --git a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+index e5d97ab..885662e 100644
+--- a/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
++++ b/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs
+@@ -2434,7 +2434,7 @@ namespace BannerlordPlayerSettlement.Behaviours
+                             overwriteItem ??= new OverwriteSettlementItem();
+ 
+                             overwriteItem.ItemXML = xml;
+-                            overwriteItem.Type = (int) SettlementType.Town;
++                            overwriteItem.Type = (int) settlementType;
+                             overwriteItem.SettlementName = settlementName;
+                             overwriteItem.RotationMat3 = settlementPlacementFrame?.rotation;
+                             overwriteItem.DeepEdits = new List<DeepTransformEdit>(deepEditPrefab == settlementVisualPrefab && deepTransformEdits != null ? deepTransformEdits : new());
