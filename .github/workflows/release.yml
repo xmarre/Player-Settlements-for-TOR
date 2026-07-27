@@ -53,7 +53,7 @@ jobs:
       - name: Build release
         shell: pwsh
         run: ./scripts/build.ps1 -UpstreamPath .cache/upstream
-      - uses: softprops/action-gh-release@v2
+      - uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65
         with:
           generate_release_notes: true
           files: dist/*

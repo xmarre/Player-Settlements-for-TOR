@@ -15,29 +15,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Export staged source hashes
-        shell: pwsh
-        run: |
-          $lines = @(
-            'patches/0001-tor-7.6.11-base.patch',
-            'patches/0002-review-fixes.patch',
-            'overlays/BannerlordPlayerSettlement/BannerlordPlayerSettlement.csproj',
-            'overlays/BannerlordPlayerSettlement/Behaviours/PlayerSettlementBehaviour.cs',
-            'overlays/BannerlordPlayerSettlement/SaveHandler.cs',
-            'overlays/BannerlordPlayerSettlement/Patches/MapScreenPatch.cs',
-            'overlays/BannerlordPlayerSettlement/Patches/PartyVisualPatch.cs'
-          ) | ForEach-Object {
-            $hash = (Get-FileHash $_ -Algorithm SHA256).Hash.ToLowerInvariant()
-            "$hash  $_"
-          }
-          $lines | Set-Content source-hashes.txt -Encoding utf8NoBOM
-          $lines | ForEach-Object { Write-Host $_ }
-      - name: Upload staged source hashes
-        uses: actions/upload-artifact@v4
-        with:
-          name: staged-source-hashes-${{ github.sha }}
-          path: source-hashes.txt
-          if-no-files-found: error
       - name: Read pinned upstream commit
         id: upstream
         shell: pwsh
