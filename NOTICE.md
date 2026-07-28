@@ -9,9 +9,9 @@ permitted and that modification requires the author's permission. Written upstre
 permission for this repository's modified source and GitHub distribution is not
 currently recorded here.
 
-The repository owner has authorised a narrowly scoped 7.6.12 GitHub prerelease for
-runtime testing by the affected save owner. `RELEASE_PERMISSION.md` records that test
-approval and its limitations. This test approval does not represent permission from
-BOTLANNER or any other rights holder.
+The repository owner has authorised narrowly scoped 7.6.12 and 7.6.13 GitHub
+prereleases for runtime testing by the affected save owner. `RELEASE_PERMISSION.md`
+records that test approval and its limitations. This test approval does not
+represent permission from BOTLANNER or any other rights holder.
 
 The Old Realms names and assets remain subject to their respective authors' terms.
