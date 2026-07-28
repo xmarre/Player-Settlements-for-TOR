@@ -1,4 +1,3 @@
-
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -15,6 +14,7 @@ using SandBox.View.Map;
 using SandBox.View.Map.Visuals;
 
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.CampaignSystem.Siege;
 using TaleWorlds.Core;
@@ -94,7 +94,7 @@ namespace BannerlordPlayerSettlement.Patches
 
         [HarmonyPrefix]
         [HarmonyPatch(nameof(HandleLeftMouseButtonClick))]
-        public static bool HandleLeftMouseButtonClick(ref MapScreen __instance, MapEntityVisual visualOfSelectedEntity, CampaignVec2 intersectionPoint, PathFaceRecord mouseOverFaceIndex, bool isDoubleClick)
+        public static bool HandleLeftMouseButtonClick(ref MapScreen __instance, ref MapEntityVisual visualOfSelectedEntity, CampaignVec2 intersectionPoint, PathFaceRecord mouseOverFaceIndex, bool isDoubleClick)
         {
 
             PlayerSettlementBehaviour behaviour = PlayerSettlementBehaviour.Instance;
@@ -111,7 +111,58 @@ namespace BannerlordPlayerSettlement.Patches
                 return false;
             }
 
+            RecoverPlayerVillageVisual(intersectionPoint, ref visualOfSelectedEntity);
             return true;
+        }
+
+        private static void RecoverPlayerVillageVisual(CampaignVec2 intersectionPoint, ref MapEntityVisual selectedVisual)
+        {
+            if (selectedVisual != null || !intersectionPoint.IsOnLand)
+            {
+                return;
+            }
+
+            var visuals = MapScreen.VisualsOfEntities;
+            if (visuals == null || visuals.Count == 0)
+            {
+                return;
+            }
+
+            const float maximumDistanceSquared = 9f;
+            float bestDistanceSquared = maximumDistanceSquared;
+            MapEntityVisual bestVisual = null;
+            var visitedSettlements = new HashSet<Settlement>();
+
+            foreach (MapEntityVisual candidateVisual in visuals.Values)
+            {
+                if (candidateVisual is not MapEntityVisual<PartyBase> partyVisual)
+                {
+                    continue;
+                }
+
+                Settlement settlement = partyVisual.MapEntity?.Settlement;
+                if (settlement == null || !settlement.IsVisible || !settlement.IsVillage ||
+                    !settlement.IsPlayerBuilt() || !visitedSettlements.Add(settlement))
+                {
+                    continue;
+                }
+
+                float deltaX = settlement.Position.X - intersectionPoint.X;
+                float deltaY = settlement.Position.Y - intersectionPoint.Y;
+                float distanceSquared = deltaX * deltaX + deltaY * deltaY;
+                if (distanceSquared > bestDistanceSquared)
+                {
+                    continue;
+                }
+
+                bestDistanceSquared = distanceSquared;
+                bestVisual = candidateVisual;
+            }
+
+            if (bestVisual != null)
+            {
+                selectedVisual = bestVisual;
+            }
         }
 
         [HarmonyPostfix]
