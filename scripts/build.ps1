@@ -49,7 +49,9 @@ if ($unlistedInputs.Count -gt 0 -or $staleEntries.Count -gt 0) {
 foreach ($relative in ($manifest.Keys | Sort-Object)) {
     $path = Join-Path $root $relative
     $actual = (Get-FileHash $path -Algorithm SHA256).Hash.ToLowerInvariant()
-    if ($actual -ne $manifest[$relative]) { throw "SHA-256 mismatch: $relative" }
+    if ($actual -ne $manifest[$relative]) {
+        throw "SHA-256 mismatch: $relative (expected $($manifest[$relative]), actual $actual)"
+    }
 }
 
 if ([string]::IsNullOrWhiteSpace($UpstreamPath)) { $UpstreamPath = Join-Path $root ".cache/upstream" }
